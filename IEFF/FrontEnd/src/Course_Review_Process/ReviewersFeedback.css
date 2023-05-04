@@ -1,0 +1,14 @@
+.inputNoBorder{
+    background-color: transparent;
+    border: 0px solid;
+    height: 16px;
+}
+.inputSmall {
+    width: 35px;
+}
+.inputLarge {
+    width: 80px;
+}
+textarea:focus, input:focus{
+    outline: none;
+}
