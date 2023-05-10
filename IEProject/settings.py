@@ -69,6 +69,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'IEProject.wsgi.application'
+AUTHENTICATION_BACKENDS = [
+    'IEFF.auth_backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 
 # Database
