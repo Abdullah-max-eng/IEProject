@@ -6,8 +6,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
-
 # Create your views here.
 
 
@@ -29,10 +27,8 @@ def login_view(request):
                 login(request, user)
                 request.session['selected_role'] = selected_role
                 return JsonResponse({'success': True})
-
             else:
                 return JsonResponse({'success': False, 'error': 'Invalid role selection'})
-
         else:
             return JsonResponse({'success': False, 'error': 'Invalid credentials'})
     else:
