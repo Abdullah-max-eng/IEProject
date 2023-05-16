@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 class SystemUsers(models.Model):
     ROLE_CHOICES = (
         ('professor', 'Professor'),
-        ('reviewer', 'Reviewer')
+        ('reviewer', 'Reviewer'),
+        ('both', 'Both')
     )
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='SystemUser')
@@ -36,6 +37,18 @@ class Courses(models.Model):
         return self.courseTitle
 
 
+class SLO(models.Model):
+    achievementStatus = models.CharField(max_length=10)
+    assessment = models.TextField()
+    facultyComment = models.TextField()
+    reviewerComment = models.TextField()
+    course = models.ForeignKey(
+        Courses, on_delete=models.CASCADE, related_name='slos')
+
+    def __str__(self):
+        return self.sloId
+
+
 class CLO(models.Model):
     cloMarks = models.PositiveIntegerField()
     cloWeight = models.PositiveIntegerField()
@@ -51,7 +64,31 @@ class CLO(models.Model):
 
 
 class AssessmentComponent(models.Model):
-    assessmentDescription = models.CharField(max_length=100)
+    ASSESSMENT_CHOICES = (
+        ('Assignment', 'Assignment'),
+        ('Quiz', 'Quiz'),
+        ('Presentation', 'Presentation'),
+        ('Midterm Exam', 'Midterm Exam'),
+        ('Final Exam', 'Final Exam'),
+        ('Project', 'Project'),
+        ('Lab Report', 'Lab Report'),
+        ('Essay', 'Essay'),
+        ('Group Work', 'Group Work'),
+        ('Research Paper', 'Research Paper'),
+        ('Online Discussion', 'Online Discussion'),
+        ('Peer Review', 'Peer Review'),
+        ('Portfolio', 'Portfolio'),
+        ('Case Study', 'Case Study'),
+        ('Oral Examination', 'Oral Examination'),
+        ('Practical Exam', 'Practical Exam'),
+        ('Simulation', 'Simulation'),
+        ('Field Work', 'Field Work'),
+        ('Attendance', 'Attendance'),
+        ('Participation', 'Participation'),
+        # Add other possible assessment components here
+    )
+    assessmentType = models.CharField(
+        max_length=20, choices=ASSESSMENT_CHOICES, null=True, blank=True)
     clos = models.ManyToManyField(CLO, related_name='assessment_components')
 
     def __str__(self):

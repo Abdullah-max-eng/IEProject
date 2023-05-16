@@ -5,6 +5,7 @@ from .models import *
 
 
 # Register your models here.
+admin.site.register(SLO)
 admin.site.register(SystemUsers)
 admin.site.register(Courses)
 admin.site.register(CLO)

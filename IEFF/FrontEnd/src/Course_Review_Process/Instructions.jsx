@@ -1,7 +1,7 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import Button from '@mui/material/Button';
 import {
-  Link
+  Link,  
 } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Box from '@mui/material/Box';
@@ -12,7 +12,30 @@ import Alert from 'react-bootstrap/Alert';
 import '../style.css';
 import reviewCritria from '../reviewCritria.png';
 import arrow from '../arrow.svg';
+
+
+
 export const Instructions = () => {
+    
+    const [role, setRole] = useState('');
+    useEffect(() => {
+      const checkRole = () => {
+        const url = 'http://127.0.0.1:8000/getRoleAndData/';
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            setRole(data.role);
+          })
+          .catch(error => console.error(error));
+      };
+    
+      checkRole();
+    }, []);
+    console.log(role);
+
+
+    
+
   return (
     <div><Box sx={{  height: '100vh' }}>
         <NavBarTopProcess/>
@@ -34,6 +57,7 @@ export const Instructions = () => {
                 <p class="oneandhalf">
                 NOTES:
                 </p>
+               
                 <p class="oneandhalf">
                 (1) All instructors who taught this course this year should assist the point person to make this task as stress-free as possible.
                 </p>
