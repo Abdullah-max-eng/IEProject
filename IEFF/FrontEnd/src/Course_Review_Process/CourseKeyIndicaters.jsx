@@ -1,4 +1,4 @@
-import React from 'react'
+import {React, useState} from 'react'
 import Button from '@mui/material/Button';
 import {
   Link
@@ -12,51 +12,73 @@ import gradeDist from '../gradeDist.png'
 import Alert from 'react-bootstrap/Alert';
 import '../style.css';
 import arrow from '../arrow.svg';
-import TextField from '@mui/material/TextField';
+import { Select, MenuItem, InputLabel } from '@mui/material';
 
 
 
 
 export const CourseKeyIndicaters = () => {
+  const [selectedCourse, setSelectedCourse] = useState('');
+
+
+  const handleCourseChange = (event) => {
+    setSelectedCourse(event.target.value);
+  };
+
+
   return (
     <div>
       <Box sx={{  height: '100vh' }}>
       <NavBarTopProcess/>
       <Container fixed>
         <Row className="fs-4 fw-bold d-flex justify-content-center">Course Key Indicators</Row>
+        
+        
+
+        
         <Row>
           <Col>
           <Alert style={{background: 'rgba(255,255,255,0.67)'}}  variant="dark">
-              <p  style={{lineHeight:'35px'}} class="oneandhalf oneandhalfmargin">
-              Enter Course Code here:  <img
-                    src={arrow}
-                    height="16px"
-                    alt="logo"
-                    />
-                    <TextField
-                      hiddenLabel
-                      id="filled-hidden-label-small"
-                      placeholder='course'
-                      variant="filled"
-                      size="small"
-                      style={{minWidth:'100px',maxWidth:'100px'}}
-                    />
+          <div style={{ display: 'flex', alignItems: 'center', lineHeight: '35px' }}>
+            <span>Enter Course Code here:</span>
+            <img src={arrow} height="13px" alt="logo" style={{ marginLeft: '5px', marginRight: '5px' }} />
+            <InputLabel id="course-select-label">Course</InputLabel>
+            <Select
+              labelId="course-select-label"
+              id="course-select"
+              value={selectedCourse}
+              onChange={handleCourseChange}
+              autoWidth
+              variant="filled"
+              size="small"
+              style={{ minWidth: '100px', maxWidth: '300px' }}
+            >
+              <MenuItem value="course1">Course 1</MenuItem>
+              <MenuItem value="course2">Course 2</MenuItem>
+              <MenuItem value="course3">Course 3</MenuItem>
+              {/* Add more MenuItem components for additional courses */}
+            </Select>
+          </div>
+
+
+
+              <p class="oneandhalf oneandhalfmargin">
+              Course Title here 
               </p>
               <p class="oneandhalf oneandhalfmargin">
-              Course Title:  Concurrent and Parallel Programming
+              Professor name here 
               </p>
               <p class="oneandhalf oneandhalfmargin">
-              Professor name: Yad Tahir  
-              </p>
-              <p class="oneandhalf oneandhalfmargin">
-              Academic year: 2022/2023
+              Academic year here 
               </p>
           </Alert>
           </Col>
           <Col>
-          
           </Col>
         </Row>
+
+
+
         <Row>
           <Col>
             <Table style={{background: 'rgba(255,255,255,0.67)'}} bordered>
@@ -74,21 +96,21 @@ export const CourseKeyIndicaters = () => {
                 </tr>
                 <tr>
                   <td><b>Number of students</b></td>
-                  <td>12</td>
-                  <td>16</td>
-                  <td>19</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
                 </tr>
                 <tr>
                   <td><b>Fail rate</b></td>
-                  <td>20%</td>
-                  <td>26%</td>
-                  <td>30%</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
                 </tr>
                 <tr>
                   <td><b>Drop/withdrow</b></td>
-                  <td>10%</td>
-                  <td>16%</td>
-                  <td>20%</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
                 </tr>
                 <tr>
                   <td><b>Student satisfaction score</b></td>
@@ -106,6 +128,10 @@ export const CourseKeyIndicaters = () => {
             </Table>
           </Col>
           <Col>
+
+
+
+          
           <img
             src={gradeDist}
             height="200px"
@@ -114,6 +140,9 @@ export const CourseKeyIndicaters = () => {
             />
           </Col>
         </Row>
+
+
+
         <Row>
           <Col>
             <Button style={{background: '#253B63'}} component={Link} to="/Instructions" variant="contained"> Previous </Button>
@@ -122,6 +151,9 @@ export const CourseKeyIndicaters = () => {
             <Button style={{background: '#253B63', float: 'right'}} component={Link} to="/CourseKeyIndicatersSecond" variant="contained"> Next </Button>
           </Col>
         </Row>
+
+
+
       </Container> 
       </Box>
     </div>

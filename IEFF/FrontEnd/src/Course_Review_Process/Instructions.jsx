@@ -73,7 +73,7 @@ export const Instructions = () => {
             <Row >
                 <Col md='auto'>
                 <Row className="p-1"><Button style={{background: '#253B63', borderRadius: '12px',textTransform: 'none',minWidth:'286px',maxWidth:'286px'}} className="p-0 fw-bold" component={Link} to="/CourseKeyIndicaters" variant="contained"> Course Key Indicators </Button></Row>
-                <Row className="p-1"><Button style={{background: '#253B63', borderRadius: '12px',textTransform: 'none',minWidth:'286px',maxWidth:'286px'}} className="p-0 fw-bold" variant="contained"> Course Folder </Button></Row>
+                <Row className="p-1"><Button style={{background: '#253B63', borderRadius: '12px',textTransform: 'none',minWidth:'286px',maxWidth:'286px'}} className="p-0 fw-bold" component={Link} to="/CourseFolder" variant="contained"> Course Folder </Button></Row>
                 <Row className="p-1"><Button style={{background: '#253B63', borderRadius: '12px',textTransform: 'none',minWidth:'286px',maxWidth:'286px'}} className="p-0 fw-bold" component={Link} to="/Weektoweekactivity" variant="contained"> Week to week activity </Button></Row>
                 <Row className="p-1"><Button style={{background: '#253B63', borderRadius: '12px',textTransform: 'none',minWidth:'286px',maxWidth:'286px'}} className="p-0 fw-bold" component={Link} to="/CourseReflectionForm" variant="contained"> Course Reflection Form </Button></Row>
                 <Row className="p-1"><Button style={{background: '#253B63', borderRadius: '12px',textTransform: 'none',minWidth:'286px',maxWidth:'286px'}} className="p-0 fw-bold" component={Link} to="/CourseImprovementPlan" variant="contained"> Course Improvement Plan (CIP) </Button></Row>
