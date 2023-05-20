@@ -8,9 +8,17 @@ import { Row, Col } from 'react-bootstrap';
 import TextField from '@mui/material/TextField';
 
 export const Weektoweekactivity = () => {
+
+
+
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [feedback, setFeedback] = useState('');
+
+
+
+
+
 
   const handleSaveAndNext = () => {
     if (!selectedWeek) {
@@ -24,6 +32,17 @@ export const Weektoweekactivity = () => {
     navigate('/CourseReflectionForm');
   };
 
+
+
+
+
+
+
+
+
+
+
+  
   return (
     <div>
       <Box sx={{ height: '100vh' }}>

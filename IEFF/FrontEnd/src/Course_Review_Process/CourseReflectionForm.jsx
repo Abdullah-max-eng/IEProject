@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { Link } from 'react-router-dom';
+import { useNavigate ,Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -11,10 +11,31 @@ import './CourseReflectionForm.css';
 
 export const CourseReflectionForm = ({ initialData }) => {
   const [formData, setFormData] = useState({});
+  const navigate = useNavigate();
 
+
+
+
+
+  
   useEffect(() => {
     setFormData(initialData);
   }, [initialData]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const handleSaveAndNext = () => {
     const sloRows = Array.from(document.querySelectorAll('#sloTable tbody tr'));
@@ -49,11 +70,20 @@ export const CourseReflectionForm = ({ initialData }) => {
 
     // Update the formData state with the edited data
     setFormData(updatedData);
-
     console.log(JSON.stringify(updatedData)); // Print data in the console
-
+    navigate('/CourseImprovementPlan');
     // TODO: Send updatedData to Django server using an HTTP request
   };
+
+
+
+
+
+
+
+
+
+
 
   return (
     <div>

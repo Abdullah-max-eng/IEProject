@@ -2,13 +2,25 @@ import React, { useState } from 'react';
 import { Button, Form, Row, Alert } from 'react-bootstrap';
 
 export const CourseFolder = () => {
+
+
+  
   const [sharedDriveLink, setSharedDriveLink] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isLinkSaved, setIsLinkSaved] = useState(false);
 
+
+
+
+
   const handleLinkChange = (event) => {
     setSharedDriveLink(event.target.value);
   };
+
+
+
+
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -28,6 +40,11 @@ export const CourseFolder = () => {
   //     setSharedDriveLink('');
   //   }, 1500);
   // };
+
+
+
+
+
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>

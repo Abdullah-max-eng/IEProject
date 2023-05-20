@@ -10,6 +10,10 @@ import CLOs from '../CLOs.png';
 import Select from 'react-select';
 
 export const CourseKeyIndicatersSecond = () => {
+
+
+  
+
   const assessmentComponentOptions = [
     { value: 'Assignment', label: 'Assignment' },
     { value: 'Quiz', label: 'Quiz' },
@@ -33,7 +37,13 @@ export const CourseKeyIndicatersSecond = () => {
     { value: 'Participation', label: 'Participation' },
   ];
 
+
+
+
   const [selectedComponents, setSelectedComponents] = useState({});
+
+
+
 
   const handleComponentsChange = (cloIndex, selectedOptions) => {
     setSelectedComponents((prevState) => ({
@@ -41,6 +51,11 @@ export const CourseKeyIndicatersSecond = () => {
       [cloIndex]: selectedOptions,
     }));
   };
+
+
+
+
+
 
   const renderCLORows = () => {
     const rows = [];
@@ -71,6 +86,12 @@ export const CourseKeyIndicatersSecond = () => {
     }
     return rows;
   };
+
+
+
+
+
+
 
   return (
     <div>
