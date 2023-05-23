@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { useNavigate ,Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -12,12 +12,27 @@ import './CourseReflectionForm.css';
 export const CourseReflectionForm = ({ initialData }) => {
   const [formData, setFormData] = useState({});
   const navigate = useNavigate();
-
-
-
+  const [role, setRole] = useState('');
 
 
   
+  useEffect(() => {
+    const checkRole = () => {
+      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setRole(data.role);
+        })
+        .catch(error => console.error(error));
+    };
+
+    checkRole();
+  }, []);
+
+
+
+
   useEffect(() => {
     setFormData(initialData);
   }, [initialData]);
@@ -25,27 +40,14 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
   const handleSaveAndNext = () => {
     const sloRows = Array.from(document.querySelectorAll('#sloTable tbody tr'));
     const cloRows = Array.from(document.querySelectorAll('#cloTable tbody tr'));
-
     const sloData = sloRows.map((row, index) => {
       const cells = Array.from(row.querySelectorAll('td'));
       return {
         slo: cells[0].textContent.trim(),
-        achievementStatus: document.querySelector(`input[name="criteria-${index}"]:checked`)?.value || '',
+        achievementStatus: document.querySelector(`input[name="slo-criteria-${index}"]:checked`)?.value || '',
         assessment: cells[2].textContent.trim(),
         facultyComments: cells[3].textContent.trim(),
         reviewerComments: cells[4].textContent.trim(),
@@ -56,24 +58,69 @@ export const CourseReflectionForm = ({ initialData }) => {
       const cells = Array.from(row.querySelectorAll('td'));
       return {
         clo: cells[0].textContent.trim(),
-        achievementStatus: document.querySelector(`input[name="criteria-${index}"]:checked`)?.value || '',
+        achievementStatus: document.querySelector(`input[name="clo-criteria-${index}"]:checked`)?.value || '',
         assessment: cells[2].textContent.trim(),
         facultyComments: cells[3].textContent.trim(),
         reviewerComments: cells[4].textContent.trim(),
       };
     });
 
+
+
+
     const updatedData = {
       sloData,
       cloData,
     };
 
-    // Update the formData state with the edited data
+
+
     setFormData(updatedData);
-    console.log(JSON.stringify(updatedData)); // Print data in the console
+    console.log(JSON.stringify(updatedData));
     navigate('/CourseImprovementPlan');
     // TODO: Send updatedData to Django server using an HTTP request
   };
+
+
+
+
+
+
+  const isProfessor = role === 'Professor';
+  const isReviewer = role === 'Reviewer';
+  const disableField = isProfessor ? {} : { disabled: true };
+  const disableReviewerComments = isProfessor ? { disabled: true, title: 'You cannot edit this field' } : {};
+  const disableNonEditableFields = isReviewer ? { disabled: true, title: 'You cannot edit this field' } : {};
+
+
+
+
+
+  const makeEditableForProfessor = (isProfessor, defaultValue) => {
+    if (isProfessor) {
+      return { contentEditable: 'true', defaultValue };
+    }
+    return { contentEditable: 'false', value: defaultValue };
+  };
+
+
+
+
+
+
+  const makeEditableForReviewer = (isReviewer, defaultValue) => {
+    if (isReviewer) {
+      return { contentEditable: 'true', defaultValue };
+    }
+    return { contentEditable: 'false', value: defaultValue };
+  };
+
+
+
+
+
+
+
 
 
 
@@ -99,19 +146,15 @@ export const CourseReflectionForm = ({ initialData }) => {
           </Row>
           <Row>
             <Dropdown>
-            <Dropdown.Toggle
-                variant="success"
-                id="dropdown-basic"
-                style={{ background: '#ffffff', color: '#000000' }}
-                >
+              <Dropdown.Toggle variant="success" id="dropdown-basic" style={{ background: '#ffffff', color: '#000000' }}>
                 Assessment 1
-                </Dropdown.Toggle>
+              </Dropdown.Toggle>
 
-                <Dropdown.Menu>
+              <Dropdown.Menu>
                 <Dropdown.Item href="#/action-1">Assessment 1</Dropdown.Item>
                 <Dropdown.Item href="#/action-2">Assessment 2</Dropdown.Item>
                 <Dropdown.Item href="#/action-3">Assessment 3</Dropdown.Item>
-                </Dropdown.Menu>
+              </Dropdown.Menu>
             </Dropdown>
           </Row>
 
@@ -147,32 +190,35 @@ export const CourseReflectionForm = ({ initialData }) => {
                         <input
                           type="radio"
                           id={`MeetTheCriteria-${index}`}
-                          name={`criteria-${index}`}
+                          name={`slo-criteria-${index}`}
                           value="meet"
                           defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'meet'}
+                          {...disableField}
                         />
                         <label htmlFor={`MeetTheCriteria-${index}`}>Achieved</label>
                         <input
                           type="radio"
                           id={`partialMeetTheCriteria-${index}`}
-                          name={`criteria-${index}`}
+                          name={`slo-criteria-${index}`}
                           value="pMeet"
                           defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'pMeet'}
+                          {...disableField}
                         />
                         <label htmlFor={`partialMeetTheCriteria-${index}`}>Partially Achieved</label>
                         <input
                           type="radio"
                           id={`notMeetTheCriteria-${index}`}
-                          name={`criteria-${index}`}
+                          name={`slo-criteria-${index}`}
                           value="notMeet"
                           defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'notMeet'}
+                          {...disableField}
                         />
                         <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
                       </form>
                     </td>
-                    <td contentEditable="true" defaultValue={formData?.sloData?.[index]?.assessment}></td>
-                    <td contentEditable="true" defaultValue={formData?.sloData?.[index]?.facultyComments}></td>
-                    <td contentEditable="true" defaultValue={formData?.sloData?.[index]?.reviewerComments}></td>
+                    <td {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.assessment)} {...disableField}></td>
+                    <td {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.facultyComments)} {...disableNonEditableFields}></td>
+                    <td {...makeEditableForReviewer(isReviewer, formData?.sloData?.[index]?.reviewerComments)} {...disableReviewerComments}></td>
                   </tr>
                 ))}
               </tbody>
@@ -211,48 +257,47 @@ export const CourseReflectionForm = ({ initialData }) => {
                         <input
                           type="radio"
                           id={`MeetTheCriteria-${index}`}
-                          name={`criteria-${index}`}
+                          name={`clo-criteria-${index}`}
                           value="meet"
                           defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'meet'}
+                          {...disableField}
                         />
                         <label htmlFor={`MeetTheCriteria-${index}`}>Achieved</label>
                         <input
                           type="radio"
                           id={`partialMeetTheCriteria-${index}`}
-                          name={`criteria-${index}`}
+                          name={`clo-criteria-${index}`}
                           value="pMeet"
                           defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'pMeet'}
+                          {...disableField}
                         />
                         <label htmlFor={`partialMeetTheCriteria-${index}`}>Partially Achieved</label>
                         <input
                           type="radio"
                           id={`notMeetTheCriteria-${index}`}
-                          name={`criteria-${index}`}
+                          name={`clo-criteria-${index}`}
                           value="notMeet"
                           defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'notMeet'}
+                          {...disableField}
                         />
                         <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
                       </form>
                     </td>
-                    <td contentEditable="true" defaultValue={formData?.cloData?.[index]?.assessment}></td>
-                    <td contentEditable="true" defaultValue={formData?.cloData?.[index]?.facultyComments}></td>
-                    <td contentEditable="true" defaultValue={formData?.cloData?.[index]?.reviewerComments}></td>
+                    <td {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.assessment)} {...disableField}></td>
+                    <td {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.facultyComments)} {...disableNonEditableFields}></td>
+                    <td {...makeEditableForReviewer(isReviewer, formData?.cloData?.[index]?.reviewerComments)} {...disableReviewerComments}></td>
                   </tr>
                 ))}
               </tbody>
             </Table>
           </Row>
 
-          <Row className="d-flex justify-content-center">
-            <Button variant="contained" onClick={handleSaveAndNext}>
+          <Row>
+            <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
               Save and Next
             </Button>
-          </Row>
-          <Row className="d-flex justify-content-center mt-2">
-            <Button variant="contained">
-              <Link to="/Weektoweekactivity" style={{ textDecoration: 'none', color: 'inherit' }}>
-                Previouse
-              </Link>
+            <Button variant="contained" color="secondary" component={Link} to="/CourseImprovementPlan">
+              Back
             </Button>
           </Row>
         </Container>
@@ -260,16 +305,3 @@ export const CourseReflectionForm = ({ initialData }) => {
     </div>
   );
 };
-
-export default CourseReflectionForm;
-
-
-
-
-
-
-
-
-
-
-

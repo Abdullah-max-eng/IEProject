@@ -17,21 +17,7 @@ import arrow from '../arrow.svg';
 
 export const Instructions = () => {
     
-    const [role, setRole] = useState('');
-    useEffect(() => {
-      const checkRole = () => {
-        const url = 'http://127.0.0.1:8000/getRoleAndData/';
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            setRole(data.role);
-          })
-          .catch(error => console.error(error));
-      };
-    
-      checkRole();
-    }, []);
-    console.log(role);
+  
 
 
     

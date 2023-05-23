@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
@@ -8,20 +8,38 @@ import { Row, Col, Table } from 'react-bootstrap';
 import './ChallengesConcerns.css';
 
 export const ChallengesConcerns = () => {
+  const navigate = useNavigate();
+  const [role, setRole] = useState('');
+
+
+
+  useEffect(() => {
+    const checkRole = () => {
+      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setRole(data.role);
+        })
+        .catch(error => console.error(error));
+    };
+
+    checkRole();
+  }, []);
+
 
 
 
   const initialConcernsData = [
-    { id: 1, challengerConcern: '', term: '' },
-    { id: 2, challengerConcern: '', term: '' },
-    { id: 3, challengerConcern: '', term: '' }
+    { id: 1, challengerConcern: '' },
+    { id: 2, challengerConcern: '' },
+    { id: 3, challengerConcern: '' }
   ];
 
 
 
 
   const [concernsData, setConcernsData] = useState(initialConcernsData);
-
 
 
 
@@ -42,12 +60,15 @@ export const ChallengesConcerns = () => {
 
 
 
-  
   const saveData = () => {
     // Print the data in the console
     console.log(concernsData);
     // Additional logic to send the data to the Django server can be added here
+    navigate("/ReviewersFeedback");
   };
+
+
+
 
 
 
@@ -64,6 +85,10 @@ export const ChallengesConcerns = () => {
 
 
 
+
+
+
+  
   return (
     <div>
       <Box sx={{ height: '100vh' }}>
@@ -80,14 +105,13 @@ export const ChallengesConcerns = () => {
               <thead>
                 <tr>
                   <td></td>
-                  <td className="header-cell" colSpan={2}>
+                  <td className="header-cell" colSpan={1}>
                     <b className="table-header">Challenges and concerns to be discussed<br /><br />with the Course Team, Chairs, and the VPAA</b>
                   </td>
                 </tr>
                 <tr>
                   <td className="number-cell"><b>#</b></td>
                   <td className="concerns-cell"><b>Challenges & Concerns</b></td>
-                  <td className="term-cell"><b>Term (e.g., Fall 2021)</b></td>
                 </tr>
               </thead>
               <tbody>
@@ -99,13 +123,7 @@ export const ChallengesConcerns = () => {
                         value={item.challengerConcern}
                         onChange={e => handleInputChange(item.id, 'challengerConcern', e.target.value)}
                         className="textarea-field"
-                      />
-                    </td>
-                    <td className="term-cell">
-                      <textarea
-                        value={item.term}
-                        onChange={e => handleInputChange(item.id, 'term', e.target.value)}
-                        className="textarea-field"
+                        disabled={role === 'Reviewer'}
                       />
                     </td>
                   </tr>
@@ -115,11 +133,26 @@ export const ChallengesConcerns = () => {
           </Row>
           <Row>
             <Col>
-              <Button style={{ background: '#253B63' }} component={Link} to="/CourseImprovementPlan" variant="contained">Previous</Button>
+              <Button style={{ background: '#253B63' }} component={Link} to="/CourseImprovementPlan" variant="contained">
+                Previous
+              </Button>
             </Col>
             <Col>
-              <Button style={{ background: '#253B63', float: 'right' }} onClick={saveData} variant="contained">Save and Next</Button>
-              <Button style={{ background: '#253B63', float: 'right', marginRight: '10px' }} onClick={resetForm} variant="contained">Reset</Button>
+              <Button
+                style={{ background: '#253B63', float: 'right' }}
+                onClick={saveData}
+                variant="contained"
+              >
+                Save and Next
+              </Button>
+              <Button
+                style={{ background: '#253B63', float: 'right', marginRight: '10px' }}
+                onClick={resetForm}
+                variant="contained"
+                disabled={role === 'Reviewer'}
+              >
+                Reset
+              </Button>
             </Col>
           </Row>
         </Container>

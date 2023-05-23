@@ -8,7 +8,16 @@ import { NavBarTop } from './NavBarTop.jsx';
 import Stack from 'react-bootstrap/Stack';
 import { Row } from 'react-bootstrap';
 
+
+
+
+
+
 export const Home = () => {
+
+
+
+
 
   return (
     <div>

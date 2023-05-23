@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { useNavigate ,Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
@@ -9,20 +9,27 @@ import './CourseImprovementPlan.css';
 
 export const CourseImprovementPlan = () => {
   const navigate = useNavigate();
+  const [role, setRole] = useState('');
 
+  useEffect(() => {
+    const checkRole = () => {
+      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setRole(data.role);
+        })
+        .catch(error => console.error(error));
+    };
 
+    checkRole();
+  }, []);
 
   const [improvementPlanData, setImprovementPlanData] = useState([
     { id: 1, issue: 'Issue 1', improvementPlan: '', successIndicators: '', actualOutcome: '', endOfSemesterOutcomes: '', furtherAction: '', feedback: '' },
     { id: 2, issue: 'Issue 2', improvementPlan: '', successIndicators: '', actualOutcome: '', endOfSemesterOutcomes: '', furtherAction: '', feedback: '' },
     { id: 3, issue: 'Issue 3', improvementPlan: '', successIndicators: '', actualOutcome: '', endOfSemesterOutcomes: '', furtherAction: '', feedback: '' }
   ]);
-
-
-
-
-
-
 
   const handleInputChange = (id, column, value) => {
     setImprovementPlanData(prevData =>
@@ -34,17 +41,6 @@ export const CourseImprovementPlan = () => {
       })
     );
   };
-
-
-
-
-
-
-
-
-
-
-
 
   const sendDataToServer = async () => {
     console.log(improvementPlanData);
@@ -60,7 +56,6 @@ export const CourseImprovementPlan = () => {
 
       if (response.ok) {
         console.log('Data sent to the server successfully!');
-        
         // Reset the form or perform any additional actions
       } else {
         console.log('Failed to send data to the server.');
@@ -69,17 +64,6 @@ export const CourseImprovementPlan = () => {
       console.error('An error occurred while sending data to the server:', error);
     }
   };
-
-
-
-
-
-
-
-
-
-
-
 
   return (
     <div>
@@ -110,12 +94,36 @@ export const CourseImprovementPlan = () => {
                 {improvementPlanData.map(item => (
                   <tr key={item.id}>
                     <td><b>{item.issue}</b></td>
-                    <td><input value={item.improvementPlan} onChange={e => handleInputChange(item.id, 'improvementPlan', e.target.value)} /></td>
-                    <td><input value={item.successIndicators} onChange={e => handleInputChange(item.id, 'successIndicators', e.target.value)} /></td>
-                    <td><input value={item.actualOutcome} onChange={e => handleInputChange(item.id, 'actualOutcome', e.target.value)} /></td>
-                    <td><input value={item.endOfSemesterOutcomes} onChange={e => handleInputChange(item.id, 'endOfSemesterOutcomes', e.target.value)} /></td>
-                    <td><input value={item.furtherAction} onChange={e => handleInputChange(item.id, 'furtherAction', e.target.value)} /></td>
-                    <td><input value={item.feedback} onChange={e => handleInputChange(item.id, 'feedback', e.target.value)} /></td>
+                    <td><input
+                      value={item.improvementPlan}
+                      onChange={e => handleInputChange(item.id, 'improvementPlan', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
+                    <td><input
+                      value={item.successIndicators}
+                      onChange={e => handleInputChange(item.id, 'successIndicators', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
+                    <td><input
+                      value={item.actualOutcome}
+                      onChange={e => handleInputChange(item.id, 'actualOutcome', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
+                    <td><input
+                      value={item.endOfSemesterOutcomes}
+                      onChange={e => handleInputChange(item.id, 'endOfSemesterOutcomes', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
+                    <td><input
+                      value={item.furtherAction}
+                      onChange={e => handleInputChange(item.id, 'furtherAction', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
+                    <td><input
+                      value={item.feedback}
+                      onChange={e => handleInputChange(item.id, 'feedback', e.target.value)}
+                      disabled={role === 'Professor'}
+                    /></td>
                   </tr>
                 ))}
               </tbody>
