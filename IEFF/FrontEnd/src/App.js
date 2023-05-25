@@ -11,12 +11,13 @@ import { CourseKeyIndicaters } from './Course_Review_Process/CourseKeyIndicaters
 import { CourseReflectionForm } from './Course_Review_Process/CourseReflectionForm';
 import { ReviewersFeedback } from './Course_Review_Process/ReviewersFeedback';
 import { Weektoweekactivity } from './Course_Review_Process/Weektoweekactivity';
-
+import {CourseFolder} from './Course_Review_Process/CourseFolder'
 function App() {
   return (
     <div className="App">
       <Router>
         <Routes>
+          <Route path="/CourseFolder" element={<CourseFolder />} />
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Login />} />
           <Route path="/Login" element={<Login />} />

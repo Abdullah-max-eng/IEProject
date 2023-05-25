@@ -6,3 +6,47 @@
 .oneandhalfmargin {
     margin-bottom:7px;
 }
+
+
+.oneandhalfmargin {
+    margin-top: 15px;
+  }
+  
+  .challenges-table {
+    background: rgba(255, 255, 255, 0.67);
+    width: 100%;
+  }
+  
+  .table-header {
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    color: #fff;
+    background: #002060;
+  }
+  
+  .number-cell {
+    line-height: 50px;
+    width: 10%;
+  }
+  
+  .concerns-cell {
+    width: 45%;
+  }
+  
+  .term-cell {
+    width: 45%;
+  }
+  
+  .textarea-field {
+    width: 100%;
+    height: 100%;
+    resize: vertical;
+  }
+  
+  .btn-group {
+    margin-top: 15px;
+  }
+  

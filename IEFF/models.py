@@ -50,8 +50,8 @@ class SLO(models.Model):
 
 
 class CLO(models.Model):
-    cloMarks = models.PositiveIntegerField()
-    cloWeight = models.PositiveIntegerField()
+    cloMarks = models.PositiveIntegerField(max_length=100)
+    cloWeight = models.PositiveIntegerField(max_length=100)
     achievementStatus = models.CharField(max_length=10)
     assessment = models.TextField()
     facultyComment = models.TextField()

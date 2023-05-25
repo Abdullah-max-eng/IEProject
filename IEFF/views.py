@@ -35,6 +35,7 @@ def login_view(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
+# new Branch
 def getRoleAndData(request):
     if request.user.is_authenticated:
         system_user = request.user.SystemUser
