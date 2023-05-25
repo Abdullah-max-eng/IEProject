@@ -5,7 +5,9 @@ from django.http import JsonResponse, HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
+from .models import *
 # Create your views here.
 
 
@@ -35,25 +37,30 @@ def login_view(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
-# new Branch
 def getRoleAndData(request):
     if request.user.is_authenticated:
         system_user = request.user.SystemUser
         role = system_user.role
         selected_role = request.session.get('selected_role')
-        if (role == "professor"):
-            print("Entered as a professorlllllllllllllllllllllll")
-            # Here we can retrieve the classes that this professor teach and pass it to the below json objt
-            return JsonResponse({'role': selected_role, })
-        elif (role == "reviewer"):
-            print("Entered as a Revlllllllllllllllllllllllllllll")
-            return JsonResponse({'role': selected_role})
-        elif (role == "both"):
-            print("Entered as a bothllllllllllllllllllllllllllllllllll")
-            return JsonResponse({'role': selected_role})
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Role", role)
+        print(
+            "++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Selected Role", selected_role)
 
+        if selected_role == 'Professor':
+            # Retrieve the courses taught by the professor from the database
+            courses = Courses.objects.filter(
+                teacher=system_user, academicYear=request.GET.get('academicYear'))
+            course_data = json.loads(serializers.serialize('json', courses))
+            print("+++++++++++++++++++++++++++++++++++++++++++++++ Courses", courses)
+            print(
+                "+++++++++++++++++++++++++++++++++++++++++++++++ Courses Data", course_data)
+            return JsonResponse({'role': selected_role, 'courses': course_data})
+        elif role == 'reviewer':
+            return JsonResponse({'role': selected_role})
+        elif role == 'both':
+            return JsonResponse({'role': selected_role})
     else:
-        return HttpResponse("User not authenticated")
+        return JsonResponse({'role': None})
 
 
 def index(request):
