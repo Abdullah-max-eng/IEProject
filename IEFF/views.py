@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.sessions.backends.db import SessionStore
+
 from .models import *
 # Create your views here.
 
@@ -74,10 +76,15 @@ def get_SelectedCourseBasedOnTerm(request):
             one_year_before_academic_year = f'{start_year}-{end_year}'
 
             try:
-                SelecteCourse = Courses.objects.get(
+                selected_course = Courses.objects.get(
                     pk=selected_course_ID, academicYear=academic_year)
             except ObjectDoesNotExist:
                 return JsonResponse({'error': 'Selected course does not exist.'})
+
+            # Store the selected course ID in the session
+            session = SessionStore(request.session.session_key)
+            session['selected_course_id'] = selected_course_ID
+            session.save()
 
             course_fall_previous_year = Courses.objects.filter(
                 academicYear=one_year_before_academic_year, term='Fall').first()
@@ -87,8 +94,8 @@ def get_SelectedCourseBasedOnTerm(request):
                 academicYear=academic_year, term='Spring').first()
 
             course_data = {
-                'courseTitle': SelecteCourse.courseTitle,
-                'professorName': SelecteCourse.teacher.user.username,
+                'courseTitle': selected_course.courseTitle,
+                'professorName': selected_course.teacher.user.username,
                 'students_fall_prev_year': course_fall_previous_year.numberOfStudent if course_fall_previous_year else '',
                 'fail_rate_fall_prev_year': str(course_fall_previous_year.failRate) if course_fall_previous_year else '',
                 'drop_withdraw_fall_prev_year': course_fall_previous_year.dropOrWithdraw if course_fall_previous_year else '',
@@ -114,6 +121,14 @@ def get_SelectedCourseBasedOnTerm(request):
 
     else:
         return HttpResponseBadRequest("Invalid request method.")
+
+
+def get_selected_course_id(request):
+    if request.user.is_authenticated:
+        selected_course_id = request.session.get('selected_course_id')
+        return JsonResponse({'selected_course_id': selected_course_id})
+    else:
+        return JsonResponse({'error': 'User not authenticated'})
 
 
 def index(request):

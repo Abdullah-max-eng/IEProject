@@ -8,6 +8,8 @@ urlpatterns = [
     path('Dashboard/', views.index, name='Dashboard'),
     path('getRoleAndData/', views.getRoleAndData, name='getRoleAndData'),
     path('get_SelectedCourseBasedOnTerm/', views.get_SelectedCourseBasedOnTerm,
-         name='getSelectedCourseBasedOnTerm')
+         name='getSelectedCourseBasedOnTerm'),
+    path('get_selected_course_id/', views.get_selected_course_id,
+         name='get_selected_course_id'),
 
 ]
