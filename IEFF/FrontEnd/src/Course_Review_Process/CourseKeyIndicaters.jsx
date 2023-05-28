@@ -12,47 +12,78 @@ import '../style.css';
 import arrow from '../arrow.svg';
 import { Select, MenuItem, InputLabel } from '@mui/material';
 
+
+
+
+
 export const CourseKeyIndicaters = () => {
+
+
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
-  const [courses, setCourses] = useState([]);
+  const [Allcourses, setAllCourses] = useState([]);
+  const [selectetTerm, setselectetTerm] = useState('');
+  const [selectedCourseBasedOnTerm, setSelectedCourseBasedOnTerm] = useState({});
 
 
 
 
 
-  const getCoursesAndData = (academicYear) => {
+
+
+  const getAllCourses = (academicYear) => {
     const url = `http://127.0.0.1:8000/getRoleAndData/?academicYear=${academicYear}`;
     fetch(url)
       .then(response => response.json())
       .then(data => {
-        setCourses(data.courses);
+        setAllCourses(data.courses);
       })
       .catch(error => console.error(error));
   };
 
 
 
-  const handleCourseChange = event => {
-    setSelectedCourse(event.target.value);
-  };
-
-
-
-
-
   const handleAcademicYearChange = event => {
     const selectedYear = event.target.value;
     setSelectedAcademicYear(selectedYear);
-    getCoursesAndData(selectedYear);
+    getAllCourses(selectedYear);
   };
 
 
 
 
+
+  const getSelectedCourseBasedOnTerm = (selectedCourse) => {
+    const url = `http://127.0.0.1:8000/get_SelectedCourseBasedOnTerm/?courseID=${selectedCourse}&academicYear=${selectedAcademicYear}`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseBasedOnTerm(data.coursesBasedOnTerm_data);
+      })
+      .catch(error => console.error(error));
+  };
+
+
+
+
+  const handleCourseChange = event => {
+    const selectedCourse = event.target.value;
+    setSelectedCourse(selectedCourse);
+    getSelectedCourseBasedOnTerm(selectedCourse);
+  };
+
+
+
+
+
+  // Fetch selected course based on term whenever it changes
   useEffect(() => {
-    console.log(courses);
-  }, [courses]);
+
+    console.log(selectedCourseBasedOnTerm);
+
+  }, [selectedCourse]); // Only listen for changes in selectedCourse
+
 
 
 
@@ -69,10 +100,6 @@ export const CourseKeyIndicaters = () => {
     { value: '2028-2029', label: '2028-2029' },
     { value: '2029-2030', label: '2029-2030' }
   ];
-
-
-
-
 
 
   return (
@@ -101,16 +128,31 @@ export const CourseKeyIndicaters = () => {
                     size="small"
                     style={{ minWidth: '100px', maxWidth: '300px' }}
                   >
-                    {courses.map(course => (
+                    {Allcourses.map(course => (
                       <MenuItem key={course.pk} value={course.pk}>
-                        {course.fields.courseCode}
+                        {course.fields.courseCode} {course.fields.term}
                       </MenuItem>
                     ))}
                   </Select>
                 </div>
 
-                <p className="oneandhalf oneandhalfmargin">Course Title here</p>
-                <p className="oneandhalf oneandhalfmargin">Professor name here</p>
+
+
+
+
+                <p className="oneandhalf oneandhalfmargin">
+                  <label>Course Title: </label>
+                  {selectedCourseBasedOnTerm.courseTitle}
+                </p>
+                <p className="oneandhalf oneandhalfmargin">
+                  <label>Instructor Name: </label>
+                  {selectedCourseBasedOnTerm.professorName}
+                </p>
+
+
+
+
+
                 <p className="oneandhalf oneandhalfmargin">
                   <InputLabel id="academic-year-select-label">Academic Year</InputLabel>
                   <Select
@@ -134,9 +176,14 @@ export const CourseKeyIndicaters = () => {
             </Col>
             <Col></Col>
           </Row>
-
           <Row>
             <Col>
+
+
+
+
+
+
               <Table style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
                 <thead>
                   <tr>
@@ -150,52 +197,65 @@ export const CourseKeyIndicaters = () => {
                     <td>
                       <b>Semester</b>
                     </td>
+                    <td>Fall {parseInt(selectedAcademicYear.split('-')[0]) - 1}-{parseInt(selectedAcademicYear.split('-')[1]) - 1}</td>
                     <td>Spring {selectedAcademicYear}</td>
                     <td>Fall {selectedAcademicYear}</td>
-                    <td>Spring {selectedAcademicYear}</td>
                   </tr>
                   <tr>
                     <td>
                       <b>Number of students</b>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{selectedCourseBasedOnTerm.students_fall_prev_year}</td>
+                    <td>{selectedCourseBasedOnTerm.students_spring_selected_year}</td>
+                    <td>{selectedCourseBasedOnTerm.students_fall_selected_year}</td>
                   </tr>
                   <tr>
                     <td>
                       <b>Fail rate</b>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{selectedCourseBasedOnTerm.fail_rate_fall_prev_year}</td>
+                    <td>{selectedCourseBasedOnTerm.fail_rate_spring_selected_year}</td>
+                    <td>{selectedCourseBasedOnTerm.fail_rate_fall_selected_year}</td>
                   </tr>
                   <tr>
                     <td>
                       <b>Drop/withdraw</b>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{selectedCourseBasedOnTerm.drop_withdraw_fall_prev_year}</td>
+                    <td>{selectedCourseBasedOnTerm.drop_withdraw_spring_selected_year}</td>
+                    <td>{selectedCourseBasedOnTerm.drop_withdraw_fall_selected_year}</td>
                   </tr>
                   <tr>
                     <td>
                       <b>Student satisfaction score</b>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{selectedCourseBasedOnTerm.satisfaction_score_fall_prev_year}</td>
+                    <td>{selectedCourseBasedOnTerm.satisfaction_score_spring_selected_year}</td>
+                    <td>{selectedCourseBasedOnTerm.satisfaction_score_fall_selected_year}</td>
                   </tr>
                   <tr>
                     <td>
                       <b>Teaching quality score</b>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{selectedCourseBasedOnTerm.teaching_quality_fall_prev_year}</td>
+                    <td>{selectedCourseBasedOnTerm.teaching_quality_spring_selected_year}</td>
+                    <td>{selectedCourseBasedOnTerm.teaching_quality_fall_selected_year}</td>
                   </tr>
                 </tbody>
               </Table>
+
+
+
+
+
+
+
+
+
+
+
+
+
             </Col>
             <Col>
               <img src={gradeDist} height="200px" alt="img" style={{ marginTop: '35px' }} />
