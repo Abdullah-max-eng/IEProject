@@ -43,6 +43,9 @@ export const CourseKeyIndicaters = () => {
 
 
 
+
+
+
   const handleAcademicYearChange = event => {
     const selectedYear = event.target.value;
     setSelectedAcademicYear(selectedYear);
@@ -128,11 +131,14 @@ export const CourseKeyIndicaters = () => {
                     size="small"
                     style={{ minWidth: '100px', maxWidth: '300px' }}
                   >
+
+
                     {Allcourses.map(course => (
                       <MenuItem key={course.pk} value={course.pk}>
                         {course.fields.courseCode} {course.fields.term}
                       </MenuItem>
                     ))}
+
                   </Select>
                 </div>
 

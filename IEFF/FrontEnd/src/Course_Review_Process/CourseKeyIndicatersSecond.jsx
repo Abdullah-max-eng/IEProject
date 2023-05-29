@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -11,7 +11,11 @@ import Select from 'react-select';
 
 export const CourseKeyIndicatersSecond = () => {
   const [selectedCourseID, setSelectedCourseID] = useState('');
-  const [selectedComponents, setSelectedComponents] = useState({});
+  const [selectedComponents, setSelectedComponents] = useState([]);
+  const [role, setRole] = useState('');
+  const [formData, setFormData] = useState([]);
+  const navigate = useNavigate();
+
 
 
 
@@ -42,12 +46,35 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
-  // Below Functions Gets the course ID selected in the first page
+
+
+
+  useEffect(() => {
+    const checkRole = () => {
+      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setRole(data.role);
+
+        })
+        .catch(error => console.error(error));
+    };
+
+    checkRole();
+  }, []);
+
+
+
+
+
+
   useEffect(() => {
     fetch('/get_selected_course_id/')
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
+
       })
       .catch(error => {
         console.error('Error fetching selected course ID:', error);
@@ -57,22 +84,76 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
-  useEffect(() => {
-    console.log('Selected Course ID:', selectedCourseID);
-  }, [selectedCourseID]);
-
-
-
-
-
 
   const handleComponentsChange = (cloIndex, selectedOptions) => {
-    setSelectedComponents(prevState => ({
-      ...prevState,
-      [cloIndex]: selectedOptions,
-    }));
+    const updatedComponents = [...selectedComponents];
+    updatedComponents[cloIndex - 1] = selectedOptions;
+    setSelectedComponents(updatedComponents);
+
+    const updatedFormData = formData.map((data, index) => {
+      if (data.cloIndex === cloIndex) {
+        return {
+          ...data,
+          assignments: selectedOptions.map(option => option.label),
+        };
+      }
+      return data;
+    });
+    setFormData(updatedFormData);
   };
 
+
+
+
+
+
+  const handleMarksChange = (e, cloIndex) => {
+    const updatedFormData = formData.map(data => {
+      if (data.cloIndex === cloIndex) {
+        return {
+          ...data,
+          marks: e.target.value,
+        };
+      }
+      return data;
+    });
+    setFormData(updatedFormData);
+  };
+
+
+
+
+
+  const handleWeightChange = (e, cloIndex) => {
+    const updatedFormData = formData.map(data => {
+      if (data.cloIndex === cloIndex) {
+        return {
+          ...data,
+          weight: e.target.value,
+        };
+      }
+      return data;
+    });
+    setFormData(updatedFormData);
+  };
+
+
+
+
+
+
+
+  const handleSaveAndNext = () => {
+    const updatedFormData = formData.map((data, index) => ({
+      ...data,
+      assignments: selectedComponents[index]?.map(option => option.label) || [],
+    }));
+    setFormData(updatedFormData);
+    console.log(formData);
+
+    // Navigate to the specified page
+    navigate('/Weektoweekactivity');
+  };
 
 
 
@@ -90,24 +171,76 @@ export const CourseKeyIndicatersSecond = () => {
               className="select-input"
               options={assessmentComponentOptions}
               isMulti
-              onChange={selectedOptions => handleComponentsChange(i, selectedOptions)}
-              value={selectedComponents[i] || []}
+              onChange={(selectedOptions) => handleComponentsChange(i, selectedOptions)}
+              value={selectedComponents[i - 1] || []}
               placeholder="Select components"
               menuPlacement="auto"
               closeMenuOnSelect={false}
+              isDisabled={role === 'Reviewer'}
+            />
+            {selectedComponents[i - 1] && selectedComponents[i - 1].length > 0 && (
+              <div>
+                Selected: {selectedComponents[i - 1].map((option) => option.label).join(', ')}
+              </div>
+            )}
+          </td>
+          <td>
+            <input
+              style={{ width: '100%' }}
+              className="inputSmall inputNoBorder"
+              placeholder="Marks"
+              disabled={role === 'Reviewer'}
+              onChange={(e) => handleMarksChange(e, i)}
             />
           </td>
           <td>
-            <input style={{ width: '100%' }} className="inputSmall inputNoBorder" placeholder="Marks" />
-          </td>
-          <td>
-            <input style={{ width: '100%' }} className="inputSmall inputNoBorder" placeholder="Weight" />
+            <input
+              style={{ width: '100%' }}
+              className="inputSmall inputNoBorder"
+              placeholder="Weight"
+              disabled={role === 'Reviewer'}
+              onChange={(e) => handleWeightChange(e, i)}
+            />
           </td>
         </tr>
       );
     }
     return rows;
   };
+
+
+
+
+
+  useEffect(() => {
+    const initialFormData = [];
+    for (let i = 1; i <= 10; i++) {
+      initialFormData.push({ cloIndex: i, marks: '', weight: '', assignments: [] });
+    }
+    setFormData(initialFormData);
+  }, []);
+
+
+
+
+
+
+
+  // useEffect(() => {
+  //   console.log(role);
+  // }, [role]);
+
+  // useEffect(() => {
+  //   console.log(selectedCourseID);
+  // }, [selectedCourseID]);
+
+
+
+
+
+
+
+
 
   return (
     <div>
@@ -162,8 +295,8 @@ export const CourseKeyIndicatersSecond = () => {
               </Button>
             </Col>
             <Col>
-              <Button style={{ background: '#253B63', float: 'right' }} component={Link} to="/Weektoweekactivity" variant="contained">
-                Next
+              <Button style={{ background: '#253B63', float: 'right' }} onClick={handleSaveAndNext} variant="contained">
+                Save and Next
               </Button>
             </Col>
           </Row>

@@ -45,21 +45,31 @@ def getRoleAndData(request):
         system_user = request.user.SystemUser
         role = system_user.role
         selected_role = request.session.get('selected_role')
+        AcademicYear = request.GET.get('academicYear')
         # print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Role", role)
         # print(
         # "++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Selected Role", selected_role)
 
-        if selected_role == 'Professor':
+        if selected_role == 'Professor' or 'Reviewer':
             # Retrieve the courses taught by the professor from the database
-            courses = Courses.objects.filter(
-                teacher=system_user, academicYear=request.GET.get('academicYear'))
-            course_data = json.loads(serializers.serialize('json', courses))
+            if (AcademicYear):
+                courses = Courses.objects.filter(
+                    teacher=system_user, academicYear=AcademicYear)
+                course_data = json.loads(
+                    serializers.serialize('json', courses))
+                return JsonResponse({'role': selected_role, 'courses': course_data})
+            else:
+                return JsonResponse({'role': selected_role})
+
+        # elif selected_role == 'Reviewer':
+        #         courses = Courses.objects.filter(
+        #         teacher=system_user, academicYear=request.GET.get('academicYear'))
+        #         course_data = json.loads(serializers.serialize('json', courses))
             # print("+++++++++++++++++++++++++++++++++++++++++++++++ Courses", courses)
             # print(
             # "+++++++++++++++++++++++++++++++++++++++++++++++ Courses Data", course_data)
-            return JsonResponse({'role': selected_role, 'courses': course_data})
-        elif role == 'reviewer':
-            return JsonResponse({'role': selected_role})
+            # return JsonResponse({'role': selected_role, 'courses': course_data})
+
         elif role == 'both':
             return JsonResponse({'role': selected_role})
     else:
@@ -112,6 +122,7 @@ def get_SelectedCourseBasedOnTerm(request):
                 'satisfaction_score_fall_selected_year': str(course_fall_selected_year.studentSatisfactionScore) if course_fall_selected_year else '',
                 'teaching_quality_fall_selected_year': str(course_fall_selected_year.teachingQualityScore) if course_fall_selected_year else ''
             }
+            print("Dataaa++++++++++++++++++++++", course_data)
 
             return JsonResponse({'coursesBasedOnTerm_data': course_data})
         except ValueError:
