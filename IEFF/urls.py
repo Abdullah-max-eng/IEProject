@@ -7,5 +7,9 @@ urlpatterns = [
     path('loginHandler/', views.login_view, name='logining'),
     path('Dashboard/', views.index, name='Dashboard'),
     path('getRoleAndData/', views.getRoleAndData, name='getRoleAndData'),
+    path('get_SelectedCourseBasedOnTerm/', views.get_SelectedCourseBasedOnTerm,
+         name='getSelectedCourseBasedOnTerm'),
+    path('get_selected_course_id/', views.get_selected_course_id,
+         name='get_selected_course_id'),
 
 ]

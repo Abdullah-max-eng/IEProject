@@ -19,9 +19,29 @@ class SystemUsers(models.Model):
 
 
 class Courses(models.Model):
+
+    TERM_CHOICES = (
+        ('Spring', 'Spring'),
+        ('Summer', 'Summer'),
+        ('Fall', 'Fall'),
+        ('Winter', 'Winter')
+    )
+
+    ACADEMIC_YEAR_CHOICES = (
+        ('2021-2022', '2021-2022'),
+        ('2022-2023', '2022-2023'),
+        ('2023-2024', '2023-2024'),
+        ('2024-2025', '2024-2025'),
+        ('2025-2026', '2025-2026'),
+        ('2026-2027', '2026-2027'),
+        ('2027-2028', '2027-2028'),
+        ('2028-2029', '2028-2029'),
+        ('2029-2030', '2029-2030')
+    )
     courseCode = models.CharField(max_length=10)
-    term = models.CharField(max_length=10)
-    academicYear = models.CharField(max_length=10)
+    term = models.CharField(max_length=10, choices=TERM_CHOICES)
+    academicYear = models.CharField(
+        max_length=10, choices=ACADEMIC_YEAR_CHOICES)
     courseTitle = models.CharField(max_length=100)
     numberOfStudent = models.PositiveIntegerField(default=0)
     dropOrWithdraw = models.PositiveIntegerField(default=0)

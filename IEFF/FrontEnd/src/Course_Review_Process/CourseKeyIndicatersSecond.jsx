@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,9 +10,10 @@ import CLOs from '../CLOs.png';
 import Select from 'react-select';
 
 export const CourseKeyIndicatersSecond = () => {
+  const [selectedCourseID, setSelectedCourseID] = useState('');
+  const [selectedComponents, setSelectedComponents] = useState({});
 
 
-  
 
   const assessmentComponentOptions = [
     { value: 'Assignment', label: 'Assignment' },
@@ -40,17 +41,38 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
-  const [selectedComponents, setSelectedComponents] = useState({});
+
+  // Below Functions Gets the course ID selected in the first page
+  useEffect(() => {
+    fetch('/get_selected_course_id/')
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseID(data.selected_course_id);
+      })
+      .catch(error => {
+        console.error('Error fetching selected course ID:', error);
+      });
+  }, []);
+
+
+
+
+  useEffect(() => {
+    console.log('Selected Course ID:', selectedCourseID);
+  }, [selectedCourseID]);
+
+
 
 
 
 
   const handleComponentsChange = (cloIndex, selectedOptions) => {
-    setSelectedComponents((prevState) => ({
+    setSelectedComponents(prevState => ({
       ...prevState,
       [cloIndex]: selectedOptions,
     }));
   };
+
 
 
 
@@ -68,7 +90,7 @@ export const CourseKeyIndicatersSecond = () => {
               className="select-input"
               options={assessmentComponentOptions}
               isMulti
-              onChange={(selectedOptions) => handleComponentsChange(i, selectedOptions)}
+              onChange={selectedOptions => handleComponentsChange(i, selectedOptions)}
               value={selectedComponents[i] || []}
               placeholder="Select components"
               menuPlacement="auto"
@@ -76,22 +98,16 @@ export const CourseKeyIndicatersSecond = () => {
             />
           </td>
           <td>
-               <input style={{ width: '100%' }} className="inputSmall inputNoBorder" placeholder="Marks" />
+            <input style={{ width: '100%' }} className="inputSmall inputNoBorder" placeholder="Marks" />
           </td>
           <td>
-               <input style={{ width: '100%' }} className="inputSmall inputNoBorder" placeholder="Weight" />
+            <input style={{ width: '100%' }} className="inputSmall inputNoBorder" placeholder="Weight" />
           </td>
         </tr>
       );
     }
     return rows;
   };
-
-
-
-
-
-
 
   return (
     <div>
@@ -146,12 +162,7 @@ export const CourseKeyIndicatersSecond = () => {
               </Button>
             </Col>
             <Col>
-              <Button
-                style={{ background: '#253B63', float: 'right' }}
-                component={Link}
-                to="/Weektoweekactivity"
-                variant="contained"
-              >
+              <Button style={{ background: '#253B63', float: 'right' }} component={Link} to="/Weektoweekactivity" variant="contained">
                 Next
               </Button>
             </Col>
