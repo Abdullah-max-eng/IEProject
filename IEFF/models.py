@@ -57,30 +57,20 @@ class Courses(models.Model):
         return self.courseTitle
 
 
-class SLO(models.Model):
-    achievementStatus = models.CharField(max_length=10)
-    assessment = models.TextField()
-    facultyComment = models.TextField()
-    reviewerComment = models.TextField()
-    course = models.ForeignKey(
-        Courses, on_delete=models.CASCADE, related_name='slos')
-
-    def __str__(self):
-        return self.sloId
 
 
 class CLO(models.Model):
-    cloMarks = models.PositiveIntegerField(max_length=100)
-    cloWeight = models.PositiveIntegerField(max_length=100)
-    achievementStatus = models.CharField(max_length=10)
-    assessment = models.TextField()
-    facultyComment = models.TextField()
-    reviewerComment = models.TextField()
+    cloMarks = models.PositiveIntegerField(max_length=100,null=True, blank=True)
+    cloWeight = models.PositiveIntegerField(max_length=100,null=True, blank=True)
+    achievementStatus = models.CharField(max_length=10,null=True, blank=True)
+    assessment = models.TextField(null=True, blank=True)
+    facultyComment = models.TextField(null=True, blank=True)
+    reviewerComment = models.TextField(null=True, blank=True)
     course = models.ForeignKey(
         Courses, on_delete=models.CASCADE, related_name='clos')
 
     def __str__(self):
-        return self.cloId
+        return f"CLO {self.id}"
 
 
 class AssessmentComponent(models.Model):
@@ -112,7 +102,15 @@ class AssessmentComponent(models.Model):
     clos = models.ManyToManyField(CLO, related_name='assessment_components')
 
     def __str__(self):
-        return self.assessmentDescription
+        return self.assessmentType
+
+
+
+
+
+
+
+
 
 
 class Challenges(models.Model):
@@ -159,3 +157,16 @@ class ReviewersFeedback(models.Model):
 
     def __str__(self):
         return f"{self.course.courseCode} Reviewers Feedback"
+
+
+
+class SLO(models.Model):
+    achievementStatus = models.CharField(max_length=10)
+    assessment = models.TextField()
+    facultyComment = models.TextField()
+    reviewerComment = models.TextField()
+    course = models.ForeignKey(
+        Courses, on_delete=models.CASCADE, related_name='slos')
+
+    def __str__(self):
+        return self.sloId

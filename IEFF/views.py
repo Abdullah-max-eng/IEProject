@@ -40,6 +40,9 @@ def login_view(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
+
+
+
 def getRoleAndData(request):
     if request.user.is_authenticated:
         system_user = request.user.SystemUser
@@ -122,7 +125,7 @@ def get_SelectedCourseBasedOnTerm(request):
                 'satisfaction_score_fall_selected_year': str(course_fall_selected_year.studentSatisfactionScore) if course_fall_selected_year else '',
                 'teaching_quality_fall_selected_year': str(course_fall_selected_year.teachingQualityScore) if course_fall_selected_year else ''
             }
-            print("Dataaa++++++++++++++++++++++", course_data)
+            # print("Dataaa++++++++++++++++++++++", course_data)
 
             return JsonResponse({'coursesBasedOnTerm_data': course_data})
         except ValueError:
@@ -134,12 +137,104 @@ def get_SelectedCourseBasedOnTerm(request):
         return HttpResponseBadRequest("Invalid request method.")
 
 
+
+
+
+
 def get_selected_course_id(request):
     if request.user.is_authenticated:
         selected_course_id = request.session.get('selected_course_id')
         return JsonResponse({'selected_course_id': selected_course_id})
     else:
         return JsonResponse({'error': 'User not authenticated'})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@csrf_exempt
+def AddOrGetDataSecondKeyIndicators(request):
+    selected_course_ID = request.GET.get('Cid')
+
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            received_data = request.body
+            try:
+                data_list = json.loads(received_data)  # Parse the received JSON data
+                if selected_course_ID is not None and selected_course_ID.isdigit():
+                    course = get_object_or_404(Courses, pk=int(selected_course_ID))
+                else:
+                    return JsonResponse({'error': 'Invalid course ID'})
+
+                # Clear existing CLOs and related assessment components for the selected course
+                course.clos.all().delete()
+
+                for data in data_list:
+                    clo_index = data['cloIndex']
+                    marks = data['marks']
+                    weight = data['weight']
+                    assignments = data['assignments']
+
+                    # Create a new CLO instance
+                    clo = CLO(pk=clo_index, cloMarks=marks, cloWeight=weight, course=course)
+                    clo.save()
+
+                    # Create assessment components for the CLO
+                    for assignment in assignments:
+                        assessment_component = AssessmentComponent(
+                            assessmentType=assignment,
+                        )
+                        assessment_component.save()
+                        clo.assessment_components.add(assessment_component)
+
+                # Delete assignments not associated with any CLO
+                AssessmentComponent.objects.filter(clos__isnull=True).delete()
+
+                return JsonResponse({'success': 'Data saved successfully'})
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid data format'})
+            except Courses.DoesNotExist:
+                return JsonResponse({'error': 'Course not found'})
+
+        elif request.method == 'GET':
+            try:
+                course = get_object_or_404(Courses, pk=int(selected_course_ID))
+                clo_data = []
+                for clo in course.clos.all():
+                    assignments = [assessment_component.assessmentType for assessment_component in
+                                   clo.assessment_components.all()]
+
+                    clo_data.append({
+                        'cloIndex': clo.id,
+                        'marks': clo.cloMarks,
+                        'weight': clo.cloWeight,
+                        'assignments': assignments
+                    })
+
+                return JsonResponse(clo_data, safe=False)
+            except Courses.DoesNotExist:
+                return JsonResponse({'error': 'Course not found'})
+    else:
+        return JsonResponse({'error': 'User not authenticated'})
+
+
+
+
+
+
+
+
+
 
 
 def index(request):

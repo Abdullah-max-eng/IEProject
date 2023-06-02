@@ -9,15 +9,19 @@ import { Row, Col, Table } from 'react-bootstrap';
 import CLOs from '../CLOs.png';
 import Select from 'react-select';
 
+
+
+
+
+
+
 export const CourseKeyIndicatersSecond = () => {
   const [selectedCourseID, setSelectedCourseID] = useState('');
   const [selectedComponents, setSelectedComponents] = useState([]);
   const [role, setRole] = useState('');
   const [formData, setFormData] = useState([]);
+  const [saveStatus, setSaveStatus] = useState('');
   const navigate = useNavigate();
-
-
-
 
   const assessmentComponentOptions = [
     { value: 'Assignment', label: 'Assignment' },
@@ -40,15 +44,10 @@ export const CourseKeyIndicatersSecond = () => {
     { value: 'Field Work', label: 'Field Work' },
     { value: 'Attendance', label: 'Attendance' },
     { value: 'Participation', label: 'Participation' },
+    // Add other possible assessment components here
   ];
 
-
-
-
-
-
-
-
+  // To get Role
   useEffect(() => {
     const checkRole = () => {
       const url = 'http://127.0.0.1:8000/getRoleAndData/';
@@ -56,7 +55,6 @@ export const CourseKeyIndicatersSecond = () => {
         .then(response => response.json())
         .then(data => {
           setRole(data.role);
-
         })
         .catch(error => console.error(error));
     };
@@ -68,13 +66,12 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
-
+  // To get the Course ID selected in the first page
   useEffect(() => {
     fetch('/get_selected_course_id/')
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
-
       })
       .catch(error => {
         console.error('Error fetching selected course ID:', error);
@@ -85,223 +82,283 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
-  const handleComponentsChange = (cloIndex, selectedOptions) => {
-    const updatedComponents = [...selectedComponents];
-    updatedComponents[cloIndex - 1] = selectedOptions;
-    setSelectedComponents(updatedComponents);
+  // To get the existing data
+  useEffect(() => {
+    if (selectedCourseID !== '') {
+      fetch(`/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
+        method: 'GET'
+      })
+        .then(response => response.json())
+        .then(data => {
+          setFormData(data);
 
-    const updatedFormData = formData.map((data, index) => {
-      if (data.cloIndex === cloIndex) {
-        return {
-          ...data,
-          assignments: selectedOptions.map(option => option.label),
-        };
-      }
-      return data;
-    });
-    setFormData(updatedFormData);
-  };
+          // Extract existing assessment components
+          const existingComponents = data.flatMap(item => item.assignments);
 
+          // Create new options array by combining existing and default options
+          const updatedOptions = assessmentComponentOptions.map(option => {
+            // Check if the existing component already exists in the default options
+            if (existingComponents.includes(option.value)) {
+              return option; // Keep the existing option as is
+            } else {
+              return { value: option.value, label: option.value }; // Create a new option
+            }
+          });
 
-
-
-
-
-  const handleMarksChange = (e, cloIndex) => {
-    const updatedFormData = formData.map(data => {
-      if (data.cloIndex === cloIndex) {
-        return {
-          ...data,
-          marks: e.target.value,
-        };
-      }
-      return data;
-    });
-    setFormData(updatedFormData);
-  };
+          // Update the assessment component options state
+          setSelectedComponents(updatedOptions);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+  }, [selectedCourseID]);
 
 
 
 
 
-  const handleWeightChange = (e, cloIndex) => {
-    const updatedFormData = formData.map(data => {
-      if (data.cloIndex === cloIndex) {
-        return {
-          ...data,
-          weight: e.target.value,
-        };
-      }
-      return data;
-    });
-    setFormData(updatedFormData);
-  };
-
-
-
-
-
-
-
-  const handleSaveAndNext = () => {
-    const updatedFormData = formData.map((data, index) => ({
-      ...data,
-      assignments: selectedComponents[index]?.map(option => option.label) || [],
-    }));
-    setFormData(updatedFormData);
+  // To save data to the database
+  const saveDataToDB = () => {
     console.log(formData);
-
-    // Navigate to the specified page
-    navigate('/Weektoweekactivity');
+    fetch(`/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.status)
+        setSaveStatus(data.status);
+      })
+      .catch(error => {
+        console.error('Error saving data:', error);
+      });
   };
 
+
+
+
+
+
+
+  const handleComponentsChange = (cloIndex, selectedOptions) => {
+    const updatedData = formData.map(item => {
+      if (item.cloIndex === cloIndex) {
+        return { ...item, assignments: selectedOptions.map(option => option.value) };
+      } else {
+        return item;
+      }
+    });
+  
+    // Create a new object if the CLO doesn't have initial data
+    const foundCLO = updatedData.find(item => item.cloIndex === cloIndex);
+    if (!foundCLO) {
+      updatedData.push({
+        cloIndex,
+        marks: '',
+        weight: '',
+        assignments: selectedOptions.map(option => option.value)
+      });
+    }
+  
+    setFormData(updatedData);
+  };
+  
+
+
+
+
+
+  
+  const handleMarksChange = (event, cloIndex) => {
+    const { value } = event.target;
+    const updatedData = formData.map(item => {
+      if (item.cloIndex === cloIndex) {
+        return { ...item, marks: value };
+      } else {
+        return item;
+      }
+    });
+
+    setFormData(updatedData);
+  };
+
+
+
+
+  const handleWeightChange = (event, cloIndex) => {
+    const { value } = event.target;
+    const updatedData = formData.map(item => {
+      if (item.cloIndex === cloIndex) {
+        return { ...item, weight: value };
+      } else {
+        return item;
+      }
+    });
+
+    setFormData(updatedData);
+  };
 
 
 
 
 
   const renderCLORows = () => {
-    const rows = [];
-    for (let i = 1; i <= 10; i++) {
-      rows.push(
-        <tr key={`clo-${i}`}>
-          <td>CLO {i}</td>
+    const initialFormData = Array.from({ length: 10 }, (_, index) => ({
+      cloIndex: index + 1,
+      marks: '',
+      weight: '',
+      assignments: []
+    }));
+    
+
+    const combinedData = [...formData, ...initialFormData];
+
+    return combinedData.map((data, index) => {
+      const marks = data.marks;
+      const weight = data.weight;
+      const assignments = data.assignments;
+
+      // Create options for the Select component based on assessmentComponentOptions
+      const options = assessmentComponentOptions.map(option => ({
+        value: option.value,
+        label: option.label
+      }));
+
+      // Get the selected options based on assignments
+      const selectedOptions = options.filter(option =>
+        assignments.includes(option.value)
+      );
+
+      return (
+        <tr key={`clo-${index + 1}`}>
+          <td>CLO {index + 1}</td>
           <td className="select-cell">
             <Select
               className="select-input"
-              options={assessmentComponentOptions}
+              options={options}
               isMulti
-              onChange={(selectedOptions) => handleComponentsChange(i, selectedOptions)}
-              value={selectedComponents[i - 1] || []}
+              onChange={selectedOptions => handleComponentsChange(index + 1, selectedOptions)}
+              value={selectedOptions}
               placeholder="Select components"
               menuPlacement="auto"
               closeMenuOnSelect={false}
               isDisabled={role === 'Reviewer'}
             />
-            {selectedComponents[i - 1] && selectedComponents[i - 1].length > 0 && (
+            {selectedOptions.length > 0 && (
               <div>
-                Selected: {selectedComponents[i - 1].map((option) => option.label).join(', ')}
+                Selected: {selectedOptions.map(option => option.label).join(', ')}
               </div>
             )}
           </td>
           <td>
             <input
-              style={{ width: '100%' }}
-              className="inputSmall inputNoBorder"
-              placeholder="Marks"
+              type="number"
+              className="marks-input"
+              value={marks}
+              onChange={event => handleMarksChange(event, index + 1)}
               disabled={role === 'Reviewer'}
-              onChange={(e) => handleMarksChange(e, i)}
             />
           </td>
           <td>
             <input
-              style={{ width: '100%' }}
-              className="inputSmall inputNoBorder"
-              placeholder="Weight"
+              type="number"
+              className="weight-input"
+              value={weight}
+              onChange={event => handleWeightChange(event, index + 1)}
               disabled={role === 'Reviewer'}
-              onChange={(e) => handleWeightChange(e, i)}
             />
           </td>
         </tr>
       );
-    }
-    return rows;
+    });
   };
 
 
 
-
-
-  useEffect(() => {
-    const initialFormData = [];
-    for (let i = 1; i <= 10; i++) {
-      initialFormData.push({ cloIndex: i, marks: '', weight: '', assignments: [] });
-    }
-    setFormData(initialFormData);
-  }, []);
-
-
-
-
-
-
-
-  // useEffect(() => {
-  //   console.log(role);
-  // }, [role]);
-
-  // useEffect(() => {
-  //   console.log(selectedCourseID);
-  // }, [selectedCourseID]);
-
-
-
-
-
-
-
-
-
+  
   return (
     <div>
-      <Box sx={{ height: '100vh' }}>
-        <NavBarTopProcess />
-        <Container fixed>
-          <Row className="fs-4 fw-bold d-flex justify-content-center">Course Key Indicators</Row>
+      <NavBarTopProcess step={2} />
+      <Container>
+        <Box sx={{ mt: 5 }}>
           <Row>
-            <Col md={6}>
-              <Table style={{ backgroundColor: '#f2f2f2' }} className="indicators-table" bordered>
+            <Col xs={12} md={4} lg={6} className="mt-2 text-center">
+              <h3 className="text-primary fw-bold">Course Key Indicators</h3>
+              <img src={CLOs} alt="CLOs" className="img-fluid" />
+            </Col>
+
+          </Row>
+          <Row className="mt-3">
+            <Col xs={12}>
+              <Table striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th>Course Learning Outcome(s)</th>
-                    <th>Assessment Components</th>
+                    <th>CLO</th>
+                    <th>Components</th>
                     <th>Marks</th>
-                    <th>Weight</th>
+                    <th>Weight (%)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>
-                      <b>enter course learning outcome (CLOs) here</b>
-                    </td>
-                    <td>
-                      <b>enter all assessment component per CLO here</b>
-                    </td>
-                    <td>
-                      <b>enter the average mark for each CLO here</b>
-                    </td>
-                    <td>
-                      <b>enter the weight mark for each CLO here</b>
-                    </td>
-                  </tr>
                   {renderCLORows()}
-                  <tr>
-                    <td>total</td>
-                    <td></td>
-                    <td>100%</td>
-                    <td>100%</td>
-                  </tr>
                 </tbody>
               </Table>
             </Col>
-            <Col>
-              <img src={CLOs} height="250px" alt="img" style={{ marginTop: '35px' }} />
+
+
+
+            <Col xs={12} md={4} lg={3} className="mt-2">
+              <Link
+                to="/CourseKeyIndicaters"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  fullWidth
+                >
+                  Back
+                </Button>
+              </Link>
             </Col>
+            <Col xs={12} md={4} lg={3} className="mt-2">
+              <Link
+                to="/Weektoweekactivity"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  fullWidth
+                >
+                  Next
+                </Button>
+              </Link>
+            </Col>
+            <Col xs={12} md={4} lg={3} className="mt-2">
+              {role !== 'Reviewer' && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  fullWidth
+                  onClick={saveDataToDB}
+                >
+                  Save
+                </Button>
+              )}
+              {saveStatus && <div className="mt-2 text-success">{saveStatus}</div>}
+            </Col>
+
           </Row>
-          <Row>
-            <Col>
-              <Button style={{ background: '#253B63' }} component={Link} to="/CourseKeyIndicaters" variant="contained">
-                Previous
-              </Button>
-            </Col>
-            <Col>
-              <Button style={{ background: '#253B63', float: 'right' }} onClick={handleSaveAndNext} variant="contained">
-                Save and Next
-              </Button>
-            </Col>
-          </Row>
-        </Container>
-      </Box>
+        </Box>
+      </Container>
     </div>
   );
 };
