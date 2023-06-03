@@ -47,6 +47,10 @@ export const CourseKeyIndicatersSecond = () => {
     // Add other possible assessment components here
   ];
 
+
+
+
+
   // To get Role
   useEffect(() => {
     const checkRole = () => {
@@ -130,8 +134,8 @@ export const CourseKeyIndicatersSecond = () => {
     })
       .then(response => response.json())
       .then(data => {
-        alert(data.status)
-        setSaveStatus(data.status);
+        alert(data.success)
+        setSaveStatus(data.success);
       })
       .catch(error => {
         console.error('Error saving data:', error);
