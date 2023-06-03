@@ -60,6 +60,7 @@ class Courses(models.Model):
 
 
 class CLO(models.Model):
+    # A new field for CLO index with positive integer to be added through which we need use it instead of pk in the view
     cloMarks = models.PositiveIntegerField(max_length=100,null=True, blank=True)
     cloWeight = models.PositiveIntegerField(max_length=100,null=True, blank=True)
     achievementStatus = models.CharField(max_length=10,null=True, blank=True)
