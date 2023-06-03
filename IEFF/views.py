@@ -186,7 +186,7 @@ def AddOrGetDataSecondKeyIndicators(request):
                     assignments = data['assignments']
 
                     # Create a new CLO instance
-                    clo = CLO(pk=clo_index, cloMarks=marks, cloWeight=weight, course=course)
+                    clo = CLO(index=clo_index, cloMarks=marks, cloWeight=weight, course=course)
                     clo.save()
 
                     # Create assessment components for the CLO
@@ -215,7 +215,7 @@ def AddOrGetDataSecondKeyIndicators(request):
                                    clo.assessment_components.all()]
 
                     clo_data.append({
-                        'cloIndex': clo.id,
+                        'cloIndex': clo.index,
                         'marks': clo.cloMarks,
                         'weight': clo.cloWeight,
                         'assignments': assignments

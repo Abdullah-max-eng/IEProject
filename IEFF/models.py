@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 
+
+
+
 class SystemUsers(models.Model):
     ROLE_CHOICES = (
         ('professor', 'Professor'),
@@ -16,6 +19,10 @@ class SystemUsers(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+
+
 
 
 class Courses(models.Model):
@@ -59,11 +66,14 @@ class Courses(models.Model):
 
 
 
+
+
+
 class CLO(models.Model):
-    # A new field for CLO index with positive integer to be added through which we need use it instead of pk in the view
-    cloMarks = models.PositiveIntegerField(max_length=100,null=True, blank=True)
-    cloWeight = models.PositiveIntegerField(max_length=100,null=True, blank=True)
-    achievementStatus = models.CharField(max_length=10,null=True, blank=True)
+    index = models.PositiveIntegerField(null=True, blank=True)
+    cloMarks = models.PositiveIntegerField(null=True, blank=True)
+    cloWeight = models.PositiveIntegerField(null=True, blank=True)
+    achievementStatus = models.CharField(max_length=10, null=True, blank=True)
     assessment = models.TextField(null=True, blank=True)
     facultyComment = models.TextField(null=True, blank=True)
     reviewerComment = models.TextField(null=True, blank=True)
@@ -71,7 +81,15 @@ class CLO(models.Model):
         Courses, on_delete=models.CASCADE, related_name='clos')
 
     def __str__(self):
-        return f"CLO {self.id}"
+        return f"CLO ID: {self.id}------CLO Index: {self.index} ------- {self.course.courseTitle} ---------- ({self.course.term} {self.course.academicYear})"
+
+
+
+
+
+
+
+
 
 
 class AssessmentComponent(models.Model):
