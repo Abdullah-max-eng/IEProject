@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -8,12 +8,71 @@ import { Row, Col } from 'react-bootstrap';
 import TextField from '@mui/material/TextField';
 
 export const Weektoweekactivity = () => {
-
-
-
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState(null);
-  const [feedback, setFeedback] = useState('');
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [selectedCourseID, setSelectedCourseID] = useState('');
+  const [status, setStatus] = useState('');
+  const [existingData, setExistingData] = useState([]);
+
+  // To get the Course ID selected in the first page
+  useEffect(() => {
+    fetch('/get_selected_course_id/')
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseID(data.selected_course_id);
+      })
+      .catch(error => {
+        console.error('Error fetching selected course ID:', error);
+      });
+  }, []);
+
+  // To get the existing data
+  useEffect(() => {
+    if (selectedCourseID !== '') {
+      fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
+        method: 'GET'
+      })
+        .then(response => response.json())
+        .then(data => {
+          setExistingData(data);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+  }, [selectedCourseID]);
+
+  // To save data to the database
+  const saveDataToDB = () => {
+    const updatedData = feedbacks.map((feedback, index) => ({
+      weekindex: index + 1,
+      feedback: feedback
+    }));
+  
+    const postData = JSON.stringify(updatedData);
+    console.log("----------------------------", postData);
+  
+    fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: postData
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.success);
+        setStatus(data.success);
+      })
+      .catch(error => {
+        console.error('Error saving data:', error);
+      });
+  };
+  
+
+
+
 
 
 
@@ -26,23 +85,30 @@ export const Weektoweekactivity = () => {
       return;
     }
 
-    // Perform saving logic here
-    console.log(selectedWeek, feedback);
-
+    saveDataToDB();
     navigate('/CourseReflectionForm');
   };
 
+  // Initialize feedbacks array based on the number of weeks
+  useEffect(() => {
+    if (existingData.length > 0) {
+      const lastWeek = existingData[existingData.length - 1].weekindex;
+      const newFeedbacks = Array(lastWeek).fill('');
 
+      existingData.forEach(item => {
+        newFeedbacks[item.weekindex - 1] = item.feedback;
+      });
 
+      setFeedbacks(newFeedbacks);
+    }
+  }, [existingData]);
 
+  const handleFeedbackChange = (weekIndex, feedback) => {
+    const newFeedbacks = [...feedbacks];
+    newFeedbacks[weekIndex - 1] = feedback;
+    setFeedbacks(newFeedbacks);
+  };
 
-
-
-
-
-
-
-  
   return (
     <div>
       <Box sx={{ height: '100vh' }}>
@@ -59,7 +125,7 @@ export const Weektoweekactivity = () => {
             <Col md={4}>
               <table>
                 <tbody>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((week) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(week => (
                     <tr key={week}>
                       <td>
                         <Button
@@ -69,7 +135,7 @@ export const Weektoweekactivity = () => {
                             textTransform: 'none',
                             minWidth: '100px',
                             maxWidth: '100px',
-                            color: selectedWeek === week ? 'white' : 'black',
+                            color: selectedWeek === week ? 'white' : 'black'
                           }}
                           className="p-1 fw-bold"
                           variant="contained"
@@ -96,8 +162,8 @@ export const Weektoweekactivity = () => {
                 variant="outlined"
                 multiline
                 rows={17}
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
+                value={feedbacks[selectedWeek - 1] || ''}
+                onChange={e => handleFeedbackChange(selectedWeek, e.target.value)}
                 style={{ background: 'rgba(255,255,255,0.67)' }}
                 disabled={!selectedWeek}
               />
@@ -116,6 +182,13 @@ export const Weektoweekactivity = () => {
                 onClick={handleSaveAndNext}
               >
                 Save and Next
+              </Button>
+              <Button
+                style={{ background: '#253B63', float: 'right', marginRight: '10px' }}
+                variant="contained"
+                onClick={saveDataToDB}
+              >
+                Save Data
               </Button>
             </Col>
           </Row>

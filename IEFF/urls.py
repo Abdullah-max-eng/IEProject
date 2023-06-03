@@ -11,6 +11,7 @@ urlpatterns = [
          name='getSelectedCourseBasedOnTerm'),
     path('get_selected_course_id/', views.get_selected_course_id,
          name='get_selected_course_id'),
- path('AddorGetDataSecondKeyIndicators/', views.AddOrGetDataSecondKeyIndicators, name='add_or_get_data_second_key_indicators')
+    path('AddorGetDataSecondKeyIndicators/', views.AddOrGetDataSecondKeyIndicators, name='add_or_get_data_second_key_indicators'),
+    path('AddorGetDataWeekToWeek/', views.AddorGetDataWeekToWeek, name='AddorGetDataWeekToWeek')
 
 ]

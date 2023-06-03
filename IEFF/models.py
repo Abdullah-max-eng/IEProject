@@ -121,12 +121,13 @@ class Issues(models.Model):
         return self.IssueDescription
 
 class Week(models.Model):
+    weekIndex = models.PositiveIntegerField(null=True, blank=True)
     WeekFeedback = models.TextField(blank=True, null=True)
     course = models.ForeignKey(
         Courses, on_delete=models.CASCADE, related_name='weeks')
 
     def __str__(self):
-        return f"Week {self.pk} ({self.course.courseCode})"
+        return f"Week {self.weekIndex} ({self.course.courseCode})"
 
     class Meta:
         ordering = ['pk']
