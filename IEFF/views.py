@@ -40,9 +40,6 @@ def login_view(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
-
-
-
 def getRoleAndData(request):
     if request.user.is_authenticated:
         system_user = request.user.SystemUser
@@ -137,15 +134,12 @@ def get_SelectedCourseBasedOnTerm(request):
         return HttpResponseBadRequest("Invalid request method.")
 
 
-
 def get_selected_course_id(request):
     if request.user.is_authenticated:
         selected_course_id = request.session.get('selected_course_id')
         return JsonResponse({'selected_course_id': selected_course_id})
     else:
         return JsonResponse({'error': 'User not authenticated'})
-
-
 
 
 @csrf_exempt
@@ -156,9 +150,11 @@ def AddOrGetDataSecondKeyIndicators(request):
         if request.method == 'POST':
             received_data = request.body
             try:
-                data_list = json.loads(received_data)  # Parse the received JSON data
+                # Parse the received JSON data
+                data_list = json.loads(received_data)
                 if selected_course_ID is not None and selected_course_ID.isdigit():
-                    course = get_object_or_404(Courses, pk=int(selected_course_ID))
+                    course = get_object_or_404(
+                        Courses, pk=int(selected_course_ID))
                 else:
                     return JsonResponse({'error': 'Invalid course ID'})
 
@@ -172,7 +168,8 @@ def AddOrGetDataSecondKeyIndicators(request):
                     assignments = data['assignments']
 
                     # Create a new CLO instance
-                    clo = CLO(index=clo_index, cloMarks=marks, cloWeight=weight, course=course)
+                    clo = CLO(index=clo_index, cloMarks=marks,
+                              cloWeight=weight, course=course)
                     clo.save()
 
                     # Create assessment components for the CLO
@@ -214,18 +211,8 @@ def AddOrGetDataSecondKeyIndicators(request):
         return JsonResponse({'error': 'User not authenticated'})
 
 
-
-
-
 def index(request):
     return render(request, 'index.html')
-
-
-
-
-
-
-
 
 
 @csrf_exempt
@@ -235,37 +222,40 @@ def AddorGetDataWeekToWeek(request):
         if request.method == 'POST':
             received_data = json.loads(request.body)
             print("Received Data -------------------", received_data)
-            
+
             try:
                 if selected_course_ID is not None and selected_course_ID.isdigit():
-                    course = get_object_or_404(Courses, pk=int(selected_course_ID))
+                    course = get_object_or_404(
+                        Courses, pk=int(selected_course_ID))
                 else:
                     return JsonResponse({'error': 'Invalid course ID'})
-                
+
                 # Clear existing weeks for the selected course
                 Week.objects.filter(course=course).delete()
 
                 for data in received_data:
                     week_index = data['weekindex']
-                    week_feedback = data['feedback']
-                    
+                    # Use .get() to provide a default value if 'feedback' is missing
+                    week_feedback = data.get('feedback', '')
+
                     # Create a new Week instance for each week index and feedback
-                    week = Week(weekIndex=week_index, WeekFeedback=week_feedback, course=course)
+                    week = Week(weekIndex=week_index,
+                                WeekFeedback=week_feedback, course=course)
                     week.save()
 
                 return JsonResponse({'success': 'Data saved successfully'})
-            
             except Courses.DoesNotExist:
                 return JsonResponse({'error': 'Course not found'})
-            
+
         elif request.method == 'GET':
             if selected_course_ID is not None and selected_course_ID.isdigit():
                 course = get_object_or_404(Courses, pk=int(selected_course_ID))
-                weeks = Week.objects.filter(course=course).order_by('weekIndex')
-                data = [{'weekindex': week.weekIndex, 'feedback': week.WeekFeedback} for week in weeks]
+                weeks = Week.objects.filter(
+                    course=course).order_by('weekIndex')
+                data = [{'weekindex': week.weekIndex,
+                         'feedback': week.WeekFeedback} for week in weeks]
                 print("Sent Data -------------------", data)
 
                 return JsonResponse(data, safe=False)
 
     return HttpResponseBadRequest('Invalid request')
-

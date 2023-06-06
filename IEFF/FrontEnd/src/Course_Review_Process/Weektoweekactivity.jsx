@@ -27,6 +27,8 @@ export const Weektoweekactivity = () => {
       });
   }, []);
 
+
+
   // To get the existing data
   useEffect(() => {
     if (selectedCourseID !== '') {
@@ -49,10 +51,10 @@ export const Weektoweekactivity = () => {
       weekindex: index + 1,
       feedback: feedback
     }));
-  
+
     const postData = JSON.stringify(updatedData);
     console.log("----------------------------", postData);
-  
+
     fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
@@ -69,7 +71,7 @@ export const Weektoweekactivity = () => {
         console.error('Error saving data:', error);
       });
   };
-  
+
 
 
 
@@ -105,9 +107,19 @@ export const Weektoweekactivity = () => {
 
   const handleFeedbackChange = (weekIndex, feedback) => {
     const newFeedbacks = [...feedbacks];
+
+    // Adjust array size if weekIndex is greater than the current length
+    if (weekIndex > newFeedbacks.length) {
+      newFeedbacks.length = weekIndex;
+    }
+
+    // Update the feedback for the selected week
     newFeedbacks[weekIndex - 1] = feedback;
     setFeedbacks(newFeedbacks);
   };
+
+
+
 
   return (
     <div>

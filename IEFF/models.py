@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
 
+
 class SystemUsers(models.Model):
     ROLE_CHOICES = (
         ('professor', 'Professor'),
@@ -15,6 +16,7 @@ class SystemUsers(models.Model):
 
     def __str__(self):
         return self.user.username
+
 
 class Courses(models.Model):
 
@@ -54,6 +56,7 @@ class Courses(models.Model):
     def __str__(self):
         return self.courseTitle
 
+
 class CLO(models.Model):
     index = models.PositiveIntegerField(null=True, blank=True)
     cloMarks = models.PositiveIntegerField(null=True, blank=True)
@@ -67,6 +70,7 @@ class CLO(models.Model):
 
     def __str__(self):
         return f"CLO ID: {self.id}------CLO Index: {self.index} ------- {self.course.courseTitle} ---------- ({self.course.term} {self.course.academicYear})"
+
 
 class AssessmentComponent(models.Model):
     ASSESSMENT_CHOICES = (
@@ -99,12 +103,14 @@ class AssessmentComponent(models.Model):
     def __str__(self):
         return self.assessmentType
 
+
 class Challenges(models.Model):
     challengeDescription = models.CharField(max_length=100)
     courses = models.ManyToManyField(Courses, related_name='challenges')
 
     def __str__(self):
         return self.challengeDescription
+
 
 class Issues(models.Model):
     IssueDescription = models.CharField(max_length=300)
@@ -120,6 +126,7 @@ class Issues(models.Model):
     def __str__(self):
         return self.IssueDescription
 
+
 class Week(models.Model):
     weekIndex = models.PositiveIntegerField(null=True, blank=True)
     WeekFeedback = models.TextField(blank=True, null=True)
@@ -127,7 +134,7 @@ class Week(models.Model):
         Courses, on_delete=models.CASCADE, related_name='weeks')
 
     def __str__(self):
-        return f"Week {self.weekIndex} ({self.course.courseCode})"
+        return f"{self.weekIndex} -------({self.course.courseTitle}) ----- ({self.course.term})"
 
     class Meta:
         ordering = ['pk']
@@ -142,7 +149,6 @@ class ReviewersFeedback(models.Model):
 
     def __str__(self):
         return f"{self.course.courseCode} Reviewers Feedback"
-
 
 
 class SLO(models.Model):
