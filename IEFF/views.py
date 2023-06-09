@@ -221,7 +221,7 @@ def AddorGetDataWeekToWeek(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
             received_data = json.loads(request.body)
-            print("Received Data -------------------", received_data)
+            # print("Received Data -------------------", received_data)
 
             try:
                 if selected_course_ID is not None and selected_course_ID.isdigit():
@@ -254,8 +254,88 @@ def AddorGetDataWeekToWeek(request):
                     course=course).order_by('weekIndex')
                 data = [{'weekindex': week.weekIndex,
                          'feedback': week.WeekFeedback} for week in weeks]
-                print("Sent Data -------------------", data)
+                # print("Sent Data -------------------", data)
 
                 return JsonResponse(data, safe=False)
 
     return HttpResponseBadRequest('Invalid request')
+
+
+@csrf_exempt
+def saveimprovementplan(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            course_id = data.get('selectedCourseID')
+            improvement_plan_data = data.get('improvementPlanData')
+            print("Received data on the server side:", data)
+
+            try:
+                course = Courses.objects.get(id=course_id)
+            except Courses.DoesNotExist:
+                return JsonResponse({'message': 'Invalid course ID'}, status=400)
+
+            for issue_data in improvement_plan_data:
+                issue_id = issue_data.get('id')
+                issue = Issues.objects.filter(
+                    IssueIndex=issue_id, course=course).first()
+
+                # if issue:
+                # Check if the field has a value before saving
+                # if issue_data.get('improvementPlan'):
+                issue.improvementPlan = issue_data.get('improvementPlan')
+                # if issue_data.get('successIndicators'):
+                issue.successIndicator = issue_data.get(
+                    'successIndicators')
+                # if issue_data.get('actualOutcome'):
+                issue.actualOutcome = issue_data.get('actualOutcome')
+                # if issue_data.get('endOfSemesterOutcomes'):
+                issue.endOfSemesterOutcome = issue_data.get(
+                    'endOfSemesterOutcomes')
+                # if issue_data.get('furtherAction'):
+                issue.actionsNeeded = issue_data.get('furtherAction')
+                # if issue_data.get('feedback'):
+                issue.reviewersFeedback = issue_data.get('feedback')
+
+                issue.save()
+                # else:
+                # Issues.objects.create(
+                #     IssueIndex=issue_data.get('id'),
+                #     IssueDescription=issue_data.get('issue'),
+                #     improvementPlan=issue_data.get('improvementPlan'),
+                #     successIndicator=issue_data.get('successIndicators'),
+                #     actualOutcome=issue_data.get('actualOutcome'),
+                #     endOfSemesterOutcome=issue_data.get(
+                #         'endOfSemesterOutcomes'),
+                #     actionsNeeded=issue_data.get('furtherAction'),
+                #     reviewersFeedback=issue_data.get('feedback'),
+                #     course=course
+                # )
+            print("Data Saved Successfully")
+            return JsonResponse({'message': 'Improvement plan data saved successfully'})
+
+        elif request.method == 'GET':
+            selected_course_ID = request.GET.get('selectedCourseID')
+            if selected_course_ID is not None and selected_course_ID.isdigit():
+                course = get_object_or_404(Courses, pk=int(selected_course_ID))
+                issues = Issues.objects.filter(course=course)
+
+                data = [{
+                        'id': issue.IssueIndex or "",
+                        'issue': issue.IssueDescription or "",
+                        'improvementPlan': issue.improvementPlan or "",
+                        'successIndicators': issue.successIndicator or "",
+                        'actualOutcome': issue.actualOutcome or "",
+                        'endOfSemesterOutcomes': issue.endOfSemesterOutcome or "",
+                        'furtherAction': issue.actionsNeeded or "",
+                        'feedback': issue.reviewersFeedback or ""
+                        } for issue in issues]
+                print("Send Data +++++++++++++++++++++++++", data)
+                return JsonResponse(data, safe=False)
+
+            else:
+                return JsonResponse({'message': 'Invalid course ID'}, status=400)
+        else:
+            return JsonResponse({'message': 'Invalid request method'}, status=405)
+    else:
+        return JsonResponse({'message': 'User not authenticated'}, status=401)

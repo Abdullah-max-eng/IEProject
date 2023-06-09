@@ -113,6 +113,7 @@ class Challenges(models.Model):
 
 
 class Issues(models.Model):
+    IssueIndex = models.PositiveIntegerField(null=True, blank=True)
     IssueDescription = models.CharField(max_length=300)
     improvementPlan = models.TextField(blank=True, null=True)
     successIndicator = models.TextField(blank=True, null=True)
@@ -124,7 +125,7 @@ class Issues(models.Model):
         Courses, on_delete=models.CASCADE, related_name='issues')
 
     def __str__(self):
-        return self.IssueDescription
+        return f"ID: {self.id} -----  Index {self.IssueIndex} Course {self.course}"
 
 
 class Week(models.Model):
