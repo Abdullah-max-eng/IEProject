@@ -78,6 +78,7 @@ def getRoleAndData(request):
 
 def get_SelectedCourseBasedOnTerm(request):
     if request.user.is_authenticated:
+
         try:
             selected_course_ID = request.GET.get('courseID')
             academic_year = request.GET.get('academicYear')
@@ -268,7 +269,7 @@ def saveimprovementplan(request):
             data = json.loads(request.body)
             course_id = data.get('selectedCourseID')
             improvement_plan_data = data.get('improvementPlanData')
-            print("Received data on the server side:", data)
+            # print("Received data on the server side:", data)
 
             try:
                 course = Courses.objects.get(id=course_id)
@@ -311,7 +312,7 @@ def saveimprovementplan(request):
                 #     reviewersFeedback=issue_data.get('feedback'),
                 #     course=course
                 # )
-            print("Data Saved Successfully")
+            # print("Data Saved Successfully")
             return JsonResponse({'message': 'Improvement plan data saved successfully'})
 
         elif request.method == 'GET':
@@ -339,3 +340,43 @@ def saveimprovementplan(request):
             return JsonResponse({'message': 'Invalid request method'}, status=405)
     else:
         return JsonResponse({'message': 'User not authenticated'}, status=401)
+
+
+@csrf_exempt
+def SaveLink(request):
+    if request.user.is_authenticated:
+
+        system_user = get_object_or_404(SystemUsers, user=request.user)
+
+        if request.method == 'POST':
+            # print(
+            # system_user, "request Received;l;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;")
+            data = json.loads(request.body.decode('utf-8'))
+            drive_link = data.get('link')
+            course_id = data.get('courseId')
+
+            # print("Received data: course_id =",
+            #   course_id, "drive_link =", drive_link)
+
+            course = get_object_or_404(
+                Courses, id=course_id)
+            teacher = course.teacher
+            teacher.drive_link = drive_link
+            teacher.save()
+
+            return JsonResponse({'success': True})
+
+        elif request.method == 'GET':
+            course_id = request.GET.get('courseId')
+            print("Course id = ", course_id)
+            if course_id:
+                course = get_object_or_404(
+                    Courses, id=course_id)
+                teacher = course.teacher
+                drive_link = teacher.drive_link
+                print("Sent Data:", drive_link)
+                return JsonResponse({'link': drive_link})
+            else:
+                return JsonResponse({'error': 'Missing courseID parameter'}, status=400)
+
+    return JsonResponse({'error': 'Unauthorized'}, status=401)

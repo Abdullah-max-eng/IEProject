@@ -14,6 +14,22 @@ export const Weektoweekactivity = () => {
   const [selectedCourseID, setSelectedCourseID] = useState('');
   const [status, setStatus] = useState('');
   const [existingData, setExistingData] = useState([]);
+  const [role, setRole] = useState('');
+
+  // To get Role
+  useEffect(() => {
+    const checkRole = () => {
+      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setRole(data.role);
+        })
+        .catch(error => console.error(error));
+    };
+
+    checkRole();
+  }, []);
 
   // To get the Course ID selected in the first page
   useEffect(() => {
@@ -26,8 +42,6 @@ export const Weektoweekactivity = () => {
         console.error('Error fetching selected course ID:', error);
       });
   }, []);
-
-
 
   // To get the existing data
   useEffect(() => {
@@ -45,6 +59,9 @@ export const Weektoweekactivity = () => {
     }
   }, [selectedCourseID]);
 
+
+
+
   // To save data to the database
   const saveDataToDB = () => {
     const updatedData = feedbacks.map((feedback, index) => ({
@@ -54,6 +71,9 @@ export const Weektoweekactivity = () => {
 
     const postData = JSON.stringify(updatedData);
     console.log("----------------------------", postData);
+
+
+
 
     fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
       method: 'POST',
@@ -72,15 +92,6 @@ export const Weektoweekactivity = () => {
       });
   };
 
-
-
-
-
-
-
-
-
-
   const handleSaveAndNext = () => {
     if (!selectedWeek) {
       alert('Please select a week.');
@@ -88,8 +99,16 @@ export const Weektoweekactivity = () => {
     }
 
     saveDataToDB();
-    navigate('/CourseReflectionForm');
+
   };
+
+
+
+
+
+
+
+
 
   // Initialize feedbacks array based on the number of weeks
   useEffect(() => {
@@ -105,6 +124,10 @@ export const Weektoweekactivity = () => {
     }
   }, [existingData]);
 
+
+
+
+
   const handleFeedbackChange = (weekIndex, feedback) => {
     const newFeedbacks = [...feedbacks];
 
@@ -119,6 +142,10 @@ export const Weektoweekactivity = () => {
   };
 
 
+
+  const goToNextPage = () => {
+    navigate('/CourseReflectionForm');
+  }
 
 
   return (
@@ -177,7 +204,7 @@ export const Weektoweekactivity = () => {
                 value={feedbacks[selectedWeek - 1] || ''}
                 onChange={e => handleFeedbackChange(selectedWeek, e.target.value)}
                 style={{ background: 'rgba(255,255,255,0.67)' }}
-                disabled={!selectedWeek}
+                disabled={!selectedWeek || role === 'Reviewer'}
               />
             </Col>
           </Row>
@@ -191,17 +218,24 @@ export const Weektoweekactivity = () => {
               <Button
                 style={{ background: '#253B63', float: 'right' }}
                 variant="contained"
-                onClick={handleSaveAndNext}
+                onClick={goToNextPage}
               >
-                Save and Next
+                Next
               </Button>
+
+
+
               <Button
                 style={{ background: '#253B63', float: 'right', marginRight: '10px' }}
                 variant="contained"
                 onClick={saveDataToDB}
+                disabled={role === 'Reviewer'}
               >
                 Save Data
               </Button>
+
+
+
             </Col>
           </Row>
         </Container>

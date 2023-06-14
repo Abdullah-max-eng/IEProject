@@ -17,5 +17,6 @@ urlpatterns = [
          name='AddorGetDataWeekToWeek'),
     path('saveimprovementplan/', views.saveimprovementplan,
          name='save_improvement_plan'),
+    path('SaveLink/', views.SaveLink, name='SaveLink'),
 
 ]

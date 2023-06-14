@@ -278,7 +278,7 @@ export const CourseKeyIndicaters = () => {
               <Button
                 style={{ background: '#253B63', float: 'right' }}
                 component={Link}
-                to="/CourseKeyIndicatersSecond"
+                to="/CourseFolder"
                 variant="contained"
               >
                 Next
