@@ -105,11 +105,14 @@ class AssessmentComponent(models.Model):
 
 
 class Challenges(models.Model):
+    index = models.PositiveIntegerField(null=True, blank=True)
     challengeDescription = models.CharField(max_length=100)
-    courses = models.ManyToManyField(Courses, related_name='challenges')
+    course = models.ForeignKey(
+        Courses, on_delete=models.CASCADE, related_name='challenges', null=True)
 
     def __str__(self):
-        return self.challengeDescription
+
+        return f"ID: {self.id} -------- Index: {self.index} -------({self.course.courseTitle}) ----- ({self.course.term})"
 
 
 class Issues(models.Model):

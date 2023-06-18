@@ -1,3 +1,4 @@
+from .models import Challenges, Courses
 from imaplib import _Authenticator
 import json
 from django.contrib.auth import authenticate, login, logout
@@ -269,7 +270,7 @@ def saveimprovementplan(request):
             data = json.loads(request.body)
             course_id = data.get('selectedCourseID')
             improvement_plan_data = data.get('improvementPlanData')
-            # print("Received data on the server side:", data)
+            # print("==================================", data)
 
             try:
                 course = Courses.objects.get(id=course_id)
@@ -281,48 +282,36 @@ def saveimprovementplan(request):
                 issue = Issues.objects.filter(
                     IssueIndex=issue_id, course=course).first()
 
-                # if issue:
-                # Check if the field has a value before saving
-                # if issue_data.get('improvementPlan'):
+                if not issue:
+                    issue = Issues(IssueIndex=issue_id, course=course)
+
+                issue.IssueDescription = issue_data.get('issue')
                 issue.improvementPlan = issue_data.get('improvementPlan')
-                # if issue_data.get('successIndicators'):
-                issue.successIndicator = issue_data.get(
-                    'successIndicators')
-                # if issue_data.get('actualOutcome'):
+                issue.successIndicator = issue_data.get('successIndicators')
                 issue.actualOutcome = issue_data.get('actualOutcome')
-                # if issue_data.get('endOfSemesterOutcomes'):
                 issue.endOfSemesterOutcome = issue_data.get(
                     'endOfSemesterOutcomes')
-                # if issue_data.get('furtherAction'):
                 issue.actionsNeeded = issue_data.get('furtherAction')
-                # if issue_data.get('feedback'):
                 issue.reviewersFeedback = issue_data.get('feedback')
 
                 issue.save()
-                # else:
-                # Issues.objects.create(
-                #     IssueIndex=issue_data.get('id'),
-                #     IssueDescription=issue_data.get('issue'),
-                #     improvementPlan=issue_data.get('improvementPlan'),
-                #     successIndicator=issue_data.get('successIndicators'),
-                #     actualOutcome=issue_data.get('actualOutcome'),
-                #     endOfSemesterOutcome=issue_data.get(
-                #         'endOfSemesterOutcomes'),
-                #     actionsNeeded=issue_data.get('furtherAction'),
-                #     reviewersFeedback=issue_data.get('feedback'),
-                #     course=course
-                # )
-            # print("Data Saved Successfully")
-            return JsonResponse({'message': 'Improvement plan data saved successfully'})
 
+            return JsonResponse({'message': 'Improvement plan data saved successfully'})
         elif request.method == 'GET':
             selected_course_ID = request.GET.get('selectedCourseID')
             if selected_course_ID is not None and selected_course_ID.isdigit():
                 course = get_object_or_404(Courses, pk=int(selected_course_ID))
                 issues = Issues.objects.filter(course=course)
 
-                data = [{
-                        'id': issue.IssueIndex or "",
+                data = []
+                for i in range(1, 4):
+                    issue = issues.filter(IssueIndex=i).first()
+
+                    if not issue:
+                        issue = Issues(IssueIndex=i, course=course)
+
+                    data.append({
+                        'id': i,
                         'issue': issue.IssueDescription or "",
                         'improvementPlan': issue.improvementPlan or "",
                         'successIndicators': issue.successIndicator or "",
@@ -330,12 +319,14 @@ def saveimprovementplan(request):
                         'endOfSemesterOutcomes': issue.endOfSemesterOutcome or "",
                         'furtherAction': issue.actionsNeeded or "",
                         'feedback': issue.reviewersFeedback or ""
-                        } for issue in issues]
-                print("Send Data +++++++++++++++++++++++++", data)
+                    })
+
+                # print("Send Data ----------------------------------- ", data)
                 return JsonResponse(data, safe=False)
 
             else:
                 return JsonResponse({'message': 'Invalid course ID'}, status=400)
+
         else:
             return JsonResponse({'message': 'Invalid request method'}, status=405)
     else:
@@ -374,9 +365,41 @@ def SaveLink(request):
                     Courses, id=course_id)
                 teacher = course.teacher
                 drive_link = teacher.drive_link
-                print("Sent Data:", drive_link)
+                # print("Sent Data:", drive_link)
                 return JsonResponse({'link': drive_link})
             else:
                 return JsonResponse({'error': 'Missing courseID parameter'}, status=400)
 
     return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+
+@csrf_exempt
+def ChallengesAndConcerns(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            course_id = request.GET.get('Cid')
+            try:
+                course = get_object_or_404(Courses, id=course_id)
+            except Courses.DoesNotExist:
+                return HttpResponseBadRequest("Invalid Course ID")
+            data = request.body.decode('utf-8')
+            try:
+                mydata = json.loads(data)
+                for item in mydata:
+                    index = item.get('id')
+                    challenge_description = item.get('challengerConcern', '')
+                    challenge, created = Challenges.objects.get_or_create(
+                        index=index, course=course,
+                        defaults={'challengeDescription': challenge_description})
+                    if not created:
+                        challenge.challengeDescription = challenge_description
+                        challenge.save()
+            except json.JSONDecodeError as e:
+                return HttpResponseBadRequest("Invalid JSON data")
+            print("Data saved successfully")
+            return HttpResponse("Data saved successfully")
+
+        elif request.method == "GET":
+            pass
+
+    return HttpResponseBadRequest("Invalid request")

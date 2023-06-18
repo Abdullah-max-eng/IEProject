@@ -71,10 +71,6 @@ export const Weektoweekactivity = () => {
 
     const postData = JSON.stringify(updatedData);
     console.log("----------------------------", postData);
-
-
-
-
     fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
@@ -91,6 +87,11 @@ export const Weektoweekactivity = () => {
         console.error('Error saving data:', error);
       });
   };
+
+
+
+
+
 
   const handleSaveAndNext = () => {
     if (!selectedWeek) {

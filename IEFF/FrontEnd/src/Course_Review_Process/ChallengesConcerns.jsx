@@ -10,6 +10,7 @@ import './ChallengesConcerns.css';
 export const ChallengesConcerns = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
+  const [selectedCourseID, setSelectedCourseID] = useState('');
 
 
 
@@ -29,16 +30,35 @@ export const ChallengesConcerns = () => {
 
 
 
+  // To get the Course ID selected in the first page
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/get_selected_course_id/')
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseID(data.selected_course_id);
+      })
+      .catch(error => {
+        console.error('Error fetching selected course ID:', error);
+      });
+  }, []);
+
+
+
+
+
+
+
+
+
+
+
+
 
   const initialConcernsData = [
     { id: 1, challengerConcern: '' },
     { id: 2, challengerConcern: '' },
     { id: 3, challengerConcern: '' }
   ];
-
-
-
-
   const [concernsData, setConcernsData] = useState(initialConcernsData);
 
 
@@ -57,13 +77,25 @@ export const ChallengesConcerns = () => {
 
 
 
-
-
-
   const saveData = () => {
-    // Print the data in the console
-    console.log(concernsData);
-    // Additional logic to send the data to the Django server can be added here
+    const jsonData = JSON.stringify(concernsData);
+    // console.log(jsonData);
+
+    fetch(`/ChallengesAndConcerns/?Cid=${selectedCourseID}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: jsonData
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.success);
+      })
+      .catch(error => {
+        console.error('Error saving data:', error);
+      });
+
     navigate("/ReviewersFeedback");
   };
 
@@ -84,11 +116,6 @@ export const ChallengesConcerns = () => {
 
 
 
-
-
-
-
-  
   return (
     <div>
       <Box sx={{ height: '100vh' }}>

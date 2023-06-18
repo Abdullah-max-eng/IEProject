@@ -11,7 +11,18 @@ export const CourseImprovementPlan = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
   const [selectedCourseID, setSelectedCourseID] = useState('');
-  const [improvementPlanData, setImprovementPlanData] = useState([]);
+  const [improvementPlanData, setImprovementPlanData] = useState([
+    {
+      id: 1,
+      issue: '',
+      improvementPlan: '',
+      successIndicators: '',
+      actualOutcome: '',
+      endOfSemesterOutcomes: '',
+      furtherAction: '',
+      feedback: ''
+    }
+  ]);
 
   // Get the current data
   useEffect(() => {
@@ -21,7 +32,9 @@ export const CourseImprovementPlan = () => {
       })
         .then(response => response.json())
         .then(data => {
-          setImprovementPlanData(data);
+          if (data.length > 0) {
+            setImprovementPlanData(data);
+          }
         })
         .catch(error => {
           console.error('Error fetching data:', error);
@@ -119,7 +132,11 @@ export const CourseImprovementPlan = () => {
               <tbody>
                 {improvementPlanData.map(item => (
                   <tr key={item.id}>
-                    <td><b>{item.issue}</b></td>
+                    <td><input
+                      value={item.issue}
+                      onChange={e => handleInputChange(item.id, 'issue', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
                     <td><input
                       value={item.improvementPlan}
                       onChange={e => handleInputChange(item.id, 'improvementPlan', e.target.value)}
@@ -152,6 +169,13 @@ export const CourseImprovementPlan = () => {
                     /></td>
                   </tr>
                 ))}
+                {improvementPlanData.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center' }}>
+                      No data available
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </Table>
           </Row>

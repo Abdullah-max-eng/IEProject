@@ -18,5 +18,7 @@ urlpatterns = [
     path('saveimprovementplan/', views.saveimprovementplan,
          name='save_improvement_plan'),
     path('SaveLink/', views.SaveLink, name='SaveLink'),
+    path('ChallengesAndConcerns/', views.ChallengesAndConcerns,
+         name='ChallengesAndConcerns'),
 
 ]

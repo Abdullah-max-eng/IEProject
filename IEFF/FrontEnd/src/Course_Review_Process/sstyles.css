@@ -1,0 +1,42 @@
+.custom-button {
+    background: #253b63;
+    color: #fff;
+    border-radius: 12px;
+    text-transform: none;
+    min-width: 286px;
+    max-width: 286px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .custom-button:hover {
+    background-color: #15243c;
+  }
+  
+
+
+  .container {
+    background-color: #f2f2f2;
+    padding: 20px;
+    border-radius: 4px;
+  }
+  
+  .card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .label {
+    font-weight: bold;
+  }
+  
+  .oneandhalf {
+    margin-bottom: 15px;
+  }
+  
+  .oneandhalfmargin {
+    margin-bottom: 15px;
+    margin-top: 15px;
+  }
+  
