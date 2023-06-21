@@ -73,6 +73,9 @@ export const CourseFolder = () => {
     saveToDB();
   };
 
+
+
+
   // Get the existing Data
   useEffect(() => {
     const getExistingLink = () => {
@@ -88,6 +91,7 @@ export const CourseFolder = () => {
 
     getExistingLink();
   }, [selectedCourseID]);
+
 
   const nextPage = () => {
     navigate('/CourseKeyIndicatersSecond');

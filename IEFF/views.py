@@ -400,6 +400,46 @@ def ChallengesAndConcerns(request):
             return HttpResponse("Data saved successfully")
 
         elif request.method == "GET":
-            pass
+            course_id = request.GET.get('courseId')
+            # print("Course IDDDDDDDDDDDDD", course_id)
+            try:
+                course = get_object_or_404(Courses, id=course_id)
+            except Courses.DoesNotExist:
+                return HttpResponseBadRequest("Invalid Course ID")
+# Retrieve challenges and concerns for the course
+            challenges = Challenges.objects.filter(course=course)
+            data = []
+            for challenge in challenges:
+                data.append({
+                    'id': challenge.index,
+                    'challengerConcern': challenge.challengeDescription
+                })
+            # print("My Dataaaaaaaaaaaaaaaaaa", data)
+            # Return the data as JSON response
+            return JsonResponse(data, safe=False)
+    return HttpResponseBadRequest("Invalid request")
 
+
+def grade_rates(request):
+    if request.user.is_authenticated:
+        course = request.GET.get('courseID')
+
+        if not course:
+            return JsonResponse({'error': 'Missing courseId parameter'}, status=400)
+
+        try:
+            grades_card = GradesCard.objects.get(course=course)
+        except GradesCard.DoesNotExist:
+            return JsonResponse({'error': 'GradesCard not found'}, status=404)
+
+        grade_rates = {
+            'A': grades_card.get_grade_rate('A'),
+            'B': grades_card.get_grade_rate('B'),
+            'C': grades_card.get_grade_rate('C'),
+            'D': grades_card.get_grade_rate('D'),
+            'F': grades_card.get_grade_rate('F'),
+            'W': grades_card.get_grade_rate('W')
+        }
+
+        return JsonResponse(grade_rates)
     return HttpResponseBadRequest("Invalid request")

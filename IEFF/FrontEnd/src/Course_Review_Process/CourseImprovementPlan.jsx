@@ -79,8 +79,8 @@ export const CourseImprovementPlan = () => {
   };
 
   const sendDataToServer = async () => {
-    console.log("Selected Course ID===========", selectedCourseID)
-    console.log(improvementPlanData);
+    // console.log("Selected Course ID===========", selectedCourseID)
+    // console.log(improvementPlanData);
 
     const requestOptions = {
       method: 'POST',
@@ -90,7 +90,7 @@ export const CourseImprovementPlan = () => {
       body: JSON.stringify({ improvementPlanData, selectedCourseID })
     };
 
-    console.log("Send data from Front end-------", requestOptions)
+    // console.log("Send data from Front end-------", requestOptions)
 
     fetch('/saveimprovementplan/', requestOptions)
       .then(response => response.json())

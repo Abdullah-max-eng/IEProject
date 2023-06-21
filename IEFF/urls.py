@@ -20,5 +20,7 @@ urlpatterns = [
     path('SaveLink/', views.SaveLink, name='SaveLink'),
     path('ChallengesAndConcerns/', views.ChallengesAndConcerns,
          name='ChallengesAndConcerns'),
+    path('grade_rates/', views.grade_rates,
+         name='grade_rates'),
 
 ]

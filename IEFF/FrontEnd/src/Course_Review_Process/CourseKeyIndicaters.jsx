@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Button from '@mui/material/Button';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,6 +11,8 @@ import Alert from 'react-bootstrap/Alert';
 import '../style.css';
 import arrow from '../arrow.svg';
 import { Select, MenuItem, InputLabel } from '@mui/material';
+import Chart from 'chart.js/auto';
+
 
 export const CourseKeyIndicaters = () => {
   const [selectedCourse, setSelectedCourse] = useState('');
@@ -18,6 +20,8 @@ export const CourseKeyIndicaters = () => {
   const [Allcourses, setAllCourses] = useState([]);
   const [selectetTerm, setselectetTerm] = useState('');
   const [selectedCourseBasedOnTerm, setSelectedCourseBasedOnTerm] = useState({});
+  const [GradeRates, setGradeRates] = useState({});
+
 
   const getAllCourses = (academicYear) => {
     const url = `http://127.0.0.1:8000/getRoleAndData/?academicYear=${academicYear}`;
@@ -52,6 +56,7 @@ export const CourseKeyIndicaters = () => {
     const selectedCourse = event.target.value;
     setSelectedCourse(selectedCourse);
     getSelectedCourseBasedOnTerm(selectedCourse);
+    getGradesRate(selectedCourse)
   };
 
   // useEffect(() => {
@@ -69,6 +74,92 @@ export const CourseKeyIndicaters = () => {
     { value: '2028-2029', label: '2028-2029' },
     { value: '2029-2030', label: '2029-2030' },
   ];
+
+
+
+
+
+
+  const getGradesRate = (courseID) => {
+    const url = `http://127.0.0.1:8000/grade_rates?courseID=${courseID}`;
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        setGradeRates(data);
+        // console.log(data); // Log the updated data
+      })
+      .catch((error) => console.error(error));
+  }
+
+
+
+
+
+  const GradeRateGraph = ({ gradeRates }) => {
+    const chartRef = useRef(null);
+
+    useEffect(() => {
+      // Extract the grade labels and rates
+      const grades = Object.keys(gradeRates);
+      const rates = Object.values(gradeRates);
+
+      // Create the chart
+      const ctx = chartRef.current.getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: grades,
+          datasets: [
+            {
+              label: 'Grade Rates',
+              data: rates,
+              backgroundColor: '253B63', // Blue color
+              borderColor: '#253B63', // Blue color
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Percentage',
+                font: {
+                  size: 14,
+                  weight: 'bold',
+                },
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Grades',
+                font: {
+                  size: 14,
+                  weight: 'bold',
+                },
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false, // Hide legend
+            },
+          },
+        },
+      });
+    }, [gradeRates]);
+
+    return (
+      <canvas ref={chartRef} height="200px" style={{ marginTop: '35px', background: '#f2f2f2' }} />
+    );
+  };
+
+
+
 
   return (
     <div>
@@ -210,9 +301,20 @@ export const CourseKeyIndicaters = () => {
                   </tbody>
                 </Table>
               </Col>
+
+
+
+
+              {/* Graph Here */}
               <Col>
-                <img src={gradeDist} height="200px" alt="img" style={{ marginTop: '35px' }} />
+                {/* <img src={gradeDist} height="200px" alt="img" style={{ marginTop: '35px' }} /> */}
+                <GradeRateGraph gradeRates={GradeRates} />
               </Col>
+
+
+
+
+
             </Row>
           )}
 

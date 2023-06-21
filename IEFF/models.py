@@ -165,3 +165,37 @@ class SLO(models.Model):
 
     def __str__(self):
         return self.sloId
+
+
+class GradesCard(models.Model):
+    Numberof_A = models.PositiveIntegerField(null=True, blank=True)
+    Numberof_B = models.PositiveIntegerField(null=True, blank=True)
+    Numberof_C = models.PositiveIntegerField(null=True, blank=True)
+    Numberof_D = models.PositiveIntegerField(null=True, blank=True)
+    Numberof_F = models.PositiveIntegerField(null=True, blank=True)
+    Numberof_W = models.PositiveIntegerField(null=True, blank=True)
+    course = models.OneToOneField(
+        Courses, on_delete=models.CASCADE, related_name='GradesCard')
+
+    def __str__(self):
+        return f"Grades Distro ID: {self.id} for course: {self.course}"
+
+    def get_grade_rate(self, grade):
+        total_grades = self.get_total_grades()
+        if total_grades > 0:
+            if grade == 'A':
+                return int((self.Numberof_A / total_grades) * 100)
+            elif grade == 'B':
+                return int((self.Numberof_B / total_grades) * 100)
+            elif grade == 'C':
+                return int((self.Numberof_C / total_grades) * 100)
+            elif grade == 'D':
+                return int((self.Numberof_D / total_grades) * 100)
+            elif grade == 'F':
+                return int((self.Numberof_F / total_grades) * 100)
+            elif grade == 'W':
+                return int((self.Numberof_W / total_grades) * 100)
+        return 0
+
+    def get_total_grades(self):
+        return sum([self.Numberof_A, self.Numberof_B, self.Numberof_C, self.Numberof_D, self.Numberof_F, self.Numberof_W])

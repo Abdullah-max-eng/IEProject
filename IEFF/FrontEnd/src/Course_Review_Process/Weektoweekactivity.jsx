@@ -211,7 +211,7 @@ export const Weektoweekactivity = () => {
           </Row>
           <Row className="mt-2">
             <Col>
-              <Button style={{ background: '#253B63' }} component={Link} to="/CourseKeyIndicatorsSecond" variant="contained">
+              <Button style={{ background: '#253B63' }} component={Link} to="/CourseKeyIndicatersSecond" variant="contained">
                 Previous
               </Button>
             </Col>

@@ -43,14 +43,24 @@ export const ChallengesConcerns = () => {
   }, []);
 
 
+  // Get the existing Data
+  useEffect(() => {
+    if (selectedCourseID) {
+      const getExisitngConcerns = () => {
+        fetch(`http://127.0.0.1:8000/ChallengesAndConcerns/?courseId=${selectedCourseID}`)
+          .then(response => response.json())
+          .then(data => {
+            // console.log(data)
+            setConcernsData(data)
+          })
 
-
-
-
-
-
-
-
+          .catch(error => {
+            console.error('Error getting existing link:', error);
+          });
+      };
+      getExisitngConcerns();
+    }
+  }, [selectedCourseID]);
 
 
 
@@ -60,9 +70,6 @@ export const ChallengesConcerns = () => {
     { id: 3, challengerConcern: '' }
   ];
   const [concernsData, setConcernsData] = useState(initialConcernsData);
-
-
-
 
   const handleInputChange = (id, column, value) => {
     setConcernsData(prevData =>
