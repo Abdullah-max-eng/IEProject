@@ -83,6 +83,7 @@ def get_SelectedCourseBasedOnTerm(request):
         try:
             selected_course_ID = request.GET.get('courseID')
             academic_year = request.GET.get('academicYear')
+
             start_year = int(academic_year.split('-')[0]) - 1
             end_year = int(academic_year.split('-')[1]) - 1
             one_year_before_academic_year = f'{start_year}-{end_year}'
@@ -90,6 +91,7 @@ def get_SelectedCourseBasedOnTerm(request):
             try:
                 selected_course = Courses.objects.get(
                     pk=selected_course_ID, academicYear=academic_year)
+                selected_course_code = selected_course.courseCode
             except ObjectDoesNotExist:
                 return JsonResponse({'error': 'Selected course does not exist.'})
 
@@ -99,11 +101,11 @@ def get_SelectedCourseBasedOnTerm(request):
             session.save()
 
             course_fall_previous_year = Courses.objects.filter(
-                academicYear=one_year_before_academic_year, term='Fall').first()
+                academicYear=one_year_before_academic_year, courseCode=selected_course_code, term='Fall').first()
             course_fall_selected_year = Courses.objects.filter(
-                academicYear=academic_year, term='Fall').first()
+                academicYear=academic_year, courseCode=selected_course_code, term='Fall').first()
             course_spring_selected_year = Courses.objects.filter(
-                academicYear=academic_year, term='Spring').first()
+                academicYear=academic_year, courseCode=selected_course_code, term='Spring').first()
 
             course_data = {
                 'courseTitle': selected_course.courseTitle,
@@ -421,25 +423,45 @@ def ChallengesAndConcerns(request):
 
 
 def grade_rates(request):
-    if request.user.is_authenticated:
-        course = request.GET.get('courseID')
+    # if request.user.is_authenticated:
+    courseID = request.GET.get('courseID')
+    academicYear = request.GET.get('academicYear')
 
-        if not course:
-            return JsonResponse({'error': 'Missing courseId parameter'}, status=400)
+    try:
+        course = get_object_or_404(Courses, pk=courseID)
+        courseCode = course.courseCode
 
-        try:
-            grades_card = GradesCard.objects.get(course=course)
-        except GradesCard.DoesNotExist:
-            return JsonResponse({'error': 'GradesCard not found'}, status=404)
+    except Courses.DoesNotExist:
+        return HttpResponseBadRequest("Course not found")
 
-        grade_rates = {
-            'A': grades_card.get_grade_rate('A'),
-            'B': grades_card.get_grade_rate('B'),
-            'C': grades_card.get_grade_rate('C'),
-            'D': grades_card.get_grade_rate('D'),
-            'F': grades_card.get_grade_rate('F'),
-            'W': grades_card.get_grade_rate('W')
-        }
+    spring_term_courses = Courses.objects.filter(
+        term="Spring", academicYear=academicYear, courseCode=courseCode
+    )
+    fall_term_courses = Courses.objects.filter(
+        term="Fall", academicYear=academicYear, courseCode=courseCode
+    )
+    # print(spring_term_courses, fall_term_courses)
 
-        return JsonResponse(grade_rates)
-    return HttpResponseBadRequest("Invalid request")
+    if not (spring_term_courses.exists() or fall_term_courses.exists()):
+        return HttpResponseBadRequest("Courses not found")
+
+    grade_rates = {}
+
+    for term_courses in [spring_term_courses, fall_term_courses]:
+        for course in term_courses:
+            try:
+                grades_card = GradesCard.objects.get(course=course)
+                grade_rates[course.term] = {
+                    'A': grades_card.get_grade_rate('A'),
+                    'B': grades_card.get_grade_rate('B'),
+                    'C': grades_card.get_grade_rate('C'),
+                    'D': grades_card.get_grade_rate('D'),
+                    'F': grades_card.get_grade_rate('F'),
+                    'W': grades_card.get_grade_rate('W')
+                }
+            except GradesCard.DoesNotExist:
+                pass
+
+    return JsonResponse(grade_rates)
+
+    # return HttpResponseBadRequest("Invalid request")

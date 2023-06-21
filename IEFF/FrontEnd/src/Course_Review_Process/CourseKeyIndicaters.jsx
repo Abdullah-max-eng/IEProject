@@ -41,8 +41,11 @@ export const CourseKeyIndicaters = () => {
     getAllCourses(selectedYear);
   };
 
-  const getSelectedCourseBasedOnTerm = (selectedCourse) => {
-    const url = `http://127.0.0.1:8000/get_SelectedCourseBasedOnTerm/?courseID=${selectedCourse}&academicYear=${selectedAcademicYear}`;
+
+
+
+  const getSelectedCourseBasedOnTerm = (selectedCourseID) => {
+    const url = `http://127.0.0.1:8000/get_SelectedCourseBasedOnTerm/?courseID=${selectedCourseID}&academicYear=${selectedAcademicYear}`;
 
     fetch(url)
       .then((response) => response.json())
@@ -52,11 +55,13 @@ export const CourseKeyIndicaters = () => {
       .catch((error) => console.error(error));
   };
 
+
+
   const handleCourseChange = (event) => {
-    const selectedCourse = event.target.value;
-    setSelectedCourse(selectedCourse);
-    getSelectedCourseBasedOnTerm(selectedCourse);
-    getGradesRate(selectedCourse)
+    const selectedCourseID = event.target.value;
+    setSelectedCourse(selectedCourseID);
+    getSelectedCourseBasedOnTerm(selectedCourseID);
+    getGradesRate(selectedCourseID)
   };
 
   // useEffect(() => {
@@ -81,12 +86,12 @@ export const CourseKeyIndicaters = () => {
 
 
   const getGradesRate = (courseID) => {
-    const url = `http://127.0.0.1:8000/grade_rates?courseID=${courseID}`;
+    const url = `http://127.0.0.1:8000/grade_rates?courseID=${courseID}&academicYear=${selectedAcademicYear}`;
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
         setGradeRates(data);
-        // console.log(data); // Log the updated data
+        console.log(data); // Log the updated data
       })
       .catch((error) => console.error(error));
   }
@@ -99,11 +104,11 @@ export const CourseKeyIndicaters = () => {
     const chartRef = useRef(null);
 
     useEffect(() => {
-      // Extract the grade labels and rates
-      const grades = Object.keys(gradeRates);
-      const rates = Object.values(gradeRates);
+      const grades = Object.keys(gradeRates.Spring || gradeRates.Fall || {});
 
-      // Create the chart
+      const fallRates = Object.values(gradeRates.Fall || {}).map(rate => rate || 0);
+      const springRates = Object.values(gradeRates.Spring || {}).map(rate => rate || 0);
+
       const ctx = chartRef.current.getContext('2d');
       new Chart(ctx, {
         type: 'bar',
@@ -111,11 +116,22 @@ export const CourseKeyIndicaters = () => {
           labels: grades,
           datasets: [
             {
-              label: 'Grade Rates',
-              data: rates,
-              backgroundColor: '253B63', // Blue color
-              borderColor: '#253B63', // Blue color
-              borderWidth: 1,
+              label: 'Fall',
+              data: fallRates,
+              backgroundColor: '#FF5733',
+              borderColor: '#FF5733',
+              borderWidth: 2, // Increase the bar border width
+              barPercentage: 0.6, // Increase the bar width
+              borderRadius: 6, // Add border radius to the bars
+            },
+            {
+              label: 'Spring',
+              data: springRates,
+              backgroundColor: '#3369FF',
+              borderColor: '#3369FF',
+              borderWidth: 2, // Increase the bar border width
+              barPercentage: 0.6, // Increase the bar width
+              borderRadius: 6, // Add border radius to the bars
             },
           ],
         },
@@ -132,6 +148,9 @@ export const CourseKeyIndicaters = () => {
                   weight: 'bold',
                 },
               },
+              grid: {
+                color: '#DDDDDD', // Customize the grid line color
+              },
             },
             x: {
               title: {
@@ -142,11 +161,40 @@ export const CourseKeyIndicaters = () => {
                   weight: 'bold',
                 },
               },
+              grid: {
+                display: false, // Hide the vertical grid lines
+              },
             },
           },
           plugins: {
             legend: {
-              display: false, // Hide legend
+              display: true,
+              position: 'top',
+              labels: {
+                boxWidth: 12, // Adjust the width of the legend color box
+                font: {
+                  size: 14,
+                },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const dataset = context.dataset.label;
+                  const value = context.parsed.y;
+                  return `${dataset}: ${value}%`;
+                },
+              },
+              backgroundColor: '#333333', // Customize the tooltip background color
+              titleAlign: 'center',
+              bodyAlign: 'center',
+              titleFont: {
+                size: 14,
+                weight: 'bold',
+              },
+              bodyFont: {
+                size: 14,
+              },
             },
           },
         },
@@ -154,9 +202,30 @@ export const CourseKeyIndicaters = () => {
     }, [gradeRates]);
 
     return (
-      <canvas ref={chartRef} height="200px" style={{ marginTop: '35px', background: '#f2f2f2' }} />
+      <div style={{ margin: '20px', padding: '20px', border: '1px solid #DDDDDD', borderRadius: '8px' }}>
+        <canvas ref={chartRef} height="250px" style={{ background: '#f2f2f2' }} />
+        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
+          {gradeRates.Fall && (
+            <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+              <span style={{ display: 'inline-block', width: '12px', height: '12px', backgroundColor: '#FF5733', marginRight: '6px' }}></span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Fall</span>
+            </div>
+          )}
+          {gradeRates.Spring && (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ display: 'inline-block', width: '12px', height: '12px', backgroundColor: '#3369FF', marginRight: '6px' }}></span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Spring</span>
+            </div>
+          )}
+        </div>
+      </div>
     );
   };
+
+
+
+
+
 
 
 

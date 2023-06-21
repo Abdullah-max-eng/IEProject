@@ -54,7 +54,7 @@ class Courses(models.Model):
         SystemUsers, on_delete=models.CASCADE, related_name='courses_taught')
 
     def __str__(self):
-        return self.courseTitle
+        return f" ID:{self.id} --- code:{self.courseCode} --- Title:{self.courseTitle} --- Year: {self.academicYear} --- Term: {self.term}"
 
 
 class CLO(models.Model):
