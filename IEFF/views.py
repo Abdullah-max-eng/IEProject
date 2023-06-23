@@ -61,7 +61,6 @@ def getRoleAndData(request):
                 return JsonResponse({'role': selected_role, 'courses': course_data})
             else:
                 return JsonResponse({'role': selected_role})
-
         # elif selected_role == 'Reviewer':
         #         courses = Courses.objects.filter(
         #         teacher=system_user, academicYear=request.GET.get('academicYear'))
@@ -79,11 +78,9 @@ def getRoleAndData(request):
 
 def get_SelectedCourseBasedOnTerm(request):
     if request.user.is_authenticated:
-
         try:
             selected_course_ID = request.GET.get('courseID')
             academic_year = request.GET.get('academicYear')
-
             start_year = int(academic_year.split('-')[0]) - 1
             end_year = int(academic_year.split('-')[1]) - 1
             one_year_before_academic_year = f'{start_year}-{end_year}'
@@ -92,6 +89,7 @@ def get_SelectedCourseBasedOnTerm(request):
                 selected_course = Courses.objects.get(
                     pk=selected_course_ID, academicYear=academic_year)
                 selected_course_code = selected_course.courseCode
+                # selected_course_Title = selected_course.courseTitle
             except ObjectDoesNotExist:
                 return JsonResponse({'error': 'Selected course does not exist.'})
 
@@ -416,9 +414,16 @@ def ChallengesAndConcerns(request):
                     'id': challenge.index,
                     'challengerConcern': challenge.challengeDescription
                 })
-            # print("My Dataaaaaaaaaaaaaaaaaa", data)
+
+            if data:
+                return JsonResponse(data, safe=False)
+            else:
+                emtpyData = [{'id': 1, 'challengerConcern': ''}, {
+                    'id': 2, 'challengerConcern': ''}, {'id': 3, 'challengerConcern': ''}]
+                print("Empty Sent")
+                return JsonResponse(emtpyData, safe=False)
             # Return the data as JSON response
-            return JsonResponse(data, safe=False)
+
     return HttpResponseBadRequest("Invalid request")
 
 
@@ -426,11 +431,9 @@ def grade_rates(request):
     # if request.user.is_authenticated:
     courseID = request.GET.get('courseID')
     academicYear = request.GET.get('academicYear')
-
     try:
         course = get_object_or_404(Courses, pk=courseID)
         courseCode = course.courseCode
-
     except Courses.DoesNotExist:
         return HttpResponseBadRequest("Course not found")
 

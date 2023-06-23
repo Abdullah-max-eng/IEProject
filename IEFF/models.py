@@ -1,6 +1,28 @@
 from django.db import models
 from django.contrib.auth.models import User
+import pandas as pd
+from django.conf import settings
+import os
+from django.conf import settings
 # Create your models here.
+
+
+# Specify the path to your Excel file
+excel_file_path = 'CodesAndTitles.xlsx'
+
+
+def get_course_data_from_excel(file_path):
+    df = pd.read_excel(file_path)  # Read the Excel file
+    # Remove duplicates based on code and title
+    df.drop_duplicates(subset=['Code', 'Title'], inplace=True)
+    # Remove duplicates based on title only
+    df.drop_duplicates(subset=['Title'], inplace=True)
+    course_code_list = df['Code'].tolist()  # Extract course code column
+    course_title_list = df['Title'].tolist()  # Extract course title column
+    return course_code_list, course_title_list
+
+
+course_codes, course_titles = get_course_data_from_excel(excel_file_path)
 
 
 class SystemUsers(models.Model):
@@ -22,9 +44,7 @@ class Courses(models.Model):
 
     TERM_CHOICES = (
         ('Spring', 'Spring'),
-        ('Summer', 'Summer'),
         ('Fall', 'Fall'),
-        ('Winter', 'Winter')
     )
 
     ACADEMIC_YEAR_CHOICES = (
@@ -38,11 +58,13 @@ class Courses(models.Model):
         ('2028-2029', '2028-2029'),
         ('2029-2030', '2029-2030')
     )
-    courseCode = models.CharField(max_length=10)
+    courseCode = models.CharField(max_length=10, choices=[
+                                  (code, code) for code in course_codes])
     term = models.CharField(max_length=10, choices=TERM_CHOICES)
     academicYear = models.CharField(
         max_length=10, choices=ACADEMIC_YEAR_CHOICES)
-    courseTitle = models.CharField(max_length=100)
+    courseTitle = models.CharField(max_length=100, choices=[
+                                   (title, title) for title in course_titles])
     numberOfStudent = models.PositiveIntegerField(default=0)
     dropOrWithdraw = models.PositiveIntegerField(default=0)
     failRate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
