@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -8,12 +8,85 @@ import { Row, Col } from 'react-bootstrap';
 import TextField from '@mui/material/TextField';
 
 export const Weektoweekactivity = () => {
-
-
-
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState(null);
-  const [feedback, setFeedback] = useState('');
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [selectedCourseID, setSelectedCourseID] = useState('');
+  const [status, setStatus] = useState('');
+  const [existingData, setExistingData] = useState([]);
+  const [role, setRole] = useState('');
+
+  // To get Role
+  useEffect(() => {
+    const checkRole = () => {
+      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setRole(data.role);
+        })
+        .catch(error => console.error(error));
+    };
+
+    checkRole();
+  }, []);
+
+  // To get the Course ID selected in the first page
+  useEffect(() => {
+    fetch('/get_selected_course_id/')
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseID(data.selected_course_id);
+      })
+      .catch(error => {
+        console.error('Error fetching selected course ID:', error);
+      });
+  }, []);
+
+  // To get the existing data
+  useEffect(() => {
+    if (selectedCourseID !== '') {
+      fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
+        method: 'GET'
+      })
+        .then(response => response.json())
+        .then(data => {
+          setExistingData(data);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+  }, [selectedCourseID]);
+
+
+
+
+  // To save data to the database
+  const saveDataToDB = () => {
+    const updatedData = feedbacks.map((feedback, index) => ({
+      weekindex: index + 1,
+      feedback: feedback
+    }));
+
+    const postData = JSON.stringify(updatedData);
+    console.log("----------------------------", postData);
+    fetch(`/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: postData
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.success);
+        setStatus(data.success);
+      })
+      .catch(error => {
+        console.error('Error saving data:', error);
+      });
+  };
 
 
 
@@ -26,10 +99,8 @@ export const Weektoweekactivity = () => {
       return;
     }
 
-    // Perform saving logic here
-    console.log(selectedWeek, feedback);
+    saveDataToDB();
 
-    navigate('/CourseReflectionForm');
   };
 
 
@@ -40,9 +111,44 @@ export const Weektoweekactivity = () => {
 
 
 
+  // Initialize feedbacks array based on the number of weeks
+  useEffect(() => {
+    if (existingData.length > 0) {
+      const lastWeek = existingData[existingData.length - 1].weekindex;
+      const newFeedbacks = Array(lastWeek).fill('');
+
+      existingData.forEach(item => {
+        newFeedbacks[item.weekindex - 1] = item.feedback;
+      });
+
+      setFeedbacks(newFeedbacks);
+    }
+  }, [existingData]);
 
 
-  
+
+
+
+  const handleFeedbackChange = (weekIndex, feedback) => {
+    const newFeedbacks = [...feedbacks];
+
+    // Adjust array size if weekIndex is greater than the current length
+    if (weekIndex > newFeedbacks.length) {
+      newFeedbacks.length = weekIndex;
+    }
+
+    // Update the feedback for the selected week
+    newFeedbacks[weekIndex - 1] = feedback;
+    setFeedbacks(newFeedbacks);
+  };
+
+
+
+  const goToNextPage = () => {
+    navigate('/CourseReflectionForm');
+  }
+
+
   return (
     <div>
       <Box sx={{ height: '100vh' }}>
@@ -59,7 +165,7 @@ export const Weektoweekactivity = () => {
             <Col md={4}>
               <table>
                 <tbody>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((week) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(week => (
                     <tr key={week}>
                       <td>
                         <Button
@@ -69,7 +175,7 @@ export const Weektoweekactivity = () => {
                             textTransform: 'none',
                             minWidth: '100px',
                             maxWidth: '100px',
-                            color: selectedWeek === week ? 'white' : 'black',
+                            color: selectedWeek === week ? 'white' : 'black'
                           }}
                           className="p-1 fw-bold"
                           variant="contained"
@@ -96,16 +202,16 @@ export const Weektoweekactivity = () => {
                 variant="outlined"
                 multiline
                 rows={17}
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
+                value={feedbacks[selectedWeek - 1] || ''}
+                onChange={e => handleFeedbackChange(selectedWeek, e.target.value)}
                 style={{ background: 'rgba(255,255,255,0.67)' }}
-                disabled={!selectedWeek}
+                disabled={!selectedWeek || role === 'Reviewer'}
               />
             </Col>
           </Row>
           <Row className="mt-2">
             <Col>
-              <Button style={{ background: '#253B63' }} component={Link} to="/CourseKeyIndicatorsSecond" variant="contained">
+              <Button style={{ background: '#253B63' }} component={Link} to="/CourseKeyIndicatersSecond" variant="contained">
                 Previous
               </Button>
             </Col>
@@ -113,10 +219,24 @@ export const Weektoweekactivity = () => {
               <Button
                 style={{ background: '#253B63', float: 'right' }}
                 variant="contained"
-                onClick={handleSaveAndNext}
+                onClick={goToNextPage}
               >
-                Save and Next
+                Next
               </Button>
+
+
+
+              <Button
+                style={{ background: '#253B63', float: 'right', marginRight: '10px' }}
+                variant="contained"
+                onClick={saveDataToDB}
+                disabled={role === 'Reviewer'}
+              >
+                Save Data
+              </Button>
+
+
+
             </Col>
           </Row>
         </Container>

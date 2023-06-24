@@ -10,6 +10,48 @@ import './CourseImprovementPlan.css';
 export const CourseImprovementPlan = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
+  const [selectedCourseID, setSelectedCourseID] = useState('');
+  const [improvementPlanData, setImprovementPlanData] = useState([
+    {
+      id: 1,
+      issue: '',
+      improvementPlan: '',
+      successIndicators: '',
+      actualOutcome: '',
+      endOfSemesterOutcomes: '',
+      furtherAction: '',
+      feedback: ''
+    }
+  ]);
+
+  // Get the current data
+  useEffect(() => {
+    if (selectedCourseID !== '') {
+      fetch(`/saveimprovementplan/?selectedCourseID=${selectedCourseID}`, {
+        method: 'GET',
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            setImprovementPlanData(data);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+  }, [selectedCourseID]);
+
+  useEffect(() => {
+    fetch('/get_selected_course_id/')
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseID(data.selected_course_id);
+      })
+      .catch(error => {
+        console.error('Error fetching selected course ID:', error);
+      });
+  }, []);
 
   useEffect(() => {
     const checkRole = () => {
@@ -25,12 +67,6 @@ export const CourseImprovementPlan = () => {
     checkRole();
   }, []);
 
-  const [improvementPlanData, setImprovementPlanData] = useState([
-    { id: 1, issue: 'Issue 1', improvementPlan: '', successIndicators: '', actualOutcome: '', endOfSemesterOutcomes: '', furtherAction: '', feedback: '' },
-    { id: 2, issue: 'Issue 2', improvementPlan: '', successIndicators: '', actualOutcome: '', endOfSemesterOutcomes: '', furtherAction: '', feedback: '' },
-    { id: 3, issue: 'Issue 3', improvementPlan: '', successIndicators: '', actualOutcome: '', endOfSemesterOutcomes: '', furtherAction: '', feedback: '' }
-  ]);
-
   const handleInputChange = (id, column, value) => {
     setImprovementPlanData(prevData =>
       prevData.map(item => {
@@ -43,26 +79,29 @@ export const CourseImprovementPlan = () => {
   };
 
   const sendDataToServer = async () => {
-    console.log(improvementPlanData);
-    navigate("/ChallengesConcerns");
-    try {
-      const response = await fetch('http://your-django-server-url/api/improvement-plans/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(improvementPlanData),
+    // console.log("Selected Course ID===========", selectedCourseID)
+    // console.log(improvementPlanData);
+
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ improvementPlanData, selectedCourseID })
+    };
+
+    // console.log("Send data from Front end-------", requestOptions)
+
+    fetch('/saveimprovementplan/', requestOptions)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Data received:', data);
+      })
+      .catch(error => {
+        console.error('Error sending data:', error);
       });
 
-      if (response.ok) {
-        console.log('Data sent to the server successfully!');
-        // Reset the form or perform any additional actions
-      } else {
-        console.log('Failed to send data to the server.');
-      }
-    } catch (error) {
-      console.error('An error occurred while sending data to the server:', error);
-    }
+    navigate("/ChallengesConcerns");
   };
 
   return (
@@ -93,7 +132,11 @@ export const CourseImprovementPlan = () => {
               <tbody>
                 {improvementPlanData.map(item => (
                   <tr key={item.id}>
-                    <td><b>{item.issue}</b></td>
+                    <td><input
+                      value={item.issue}
+                      onChange={e => handleInputChange(item.id, 'issue', e.target.value)}
+                      disabled={role === 'Reviewer'}
+                    /></td>
                     <td><input
                       value={item.improvementPlan}
                       onChange={e => handleInputChange(item.id, 'improvementPlan', e.target.value)}
@@ -126,6 +169,13 @@ export const CourseImprovementPlan = () => {
                     /></td>
                   </tr>
                 ))}
+                {improvementPlanData.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center' }}>
+                      No data available
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </Table>
           </Row>
