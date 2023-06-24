@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name="Login"),
-    path('Login', views.index, name="Login"),
+    path('Login/', views.index, name="Login"),
     path('loginHandler/', views.login_view, name='logining'),
     path('Dashboard/', views.index, name='Dashboard'),
     path('getRoleAndData/', views.getRoleAndData, name='getRoleAndData'),
@@ -20,7 +20,7 @@ urlpatterns = [
     path('SaveLink/', views.SaveLink, name='SaveLink'),
     path('ChallengesAndConcerns/', views.ChallengesAndConcerns,
          name='ChallengesAndConcerns'),
-    path('grade_rates/', views.grade_rates,
-         name='grade_rates'),
-
+    path('grade_rates/', views.grade_rates, name='grade_rates'),
+    path('Logout/', views.Logout, name='Logout'),
+    path('<path:route>/', views.index, name='ReactApp'),  # New catch-all route
 ]

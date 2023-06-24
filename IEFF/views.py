@@ -10,6 +10,7 @@ from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.auth.decorators import login_required
 
 from .models import *
 # Create your views here.
@@ -213,7 +214,7 @@ def AddOrGetDataSecondKeyIndicators(request):
         return JsonResponse({'error': 'User not authenticated'})
 
 
-def index(request):
+def index(request, route=''):
     return render(request, 'index.html')
 
 
@@ -468,3 +469,9 @@ def grade_rates(request):
     return JsonResponse(grade_rates)
 
     # return HttpResponseBadRequest("Invalid request")
+
+
+@csrf_exempt
+def Logout(request):
+    logout(request)  # Logout the current user
+    return JsonResponse({'success': True})

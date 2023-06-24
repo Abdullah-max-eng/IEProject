@@ -12,6 +12,26 @@ import reviewCritria from '../reviewCritria.png';
 import arrow from '../arrow.svg';
 
 export const Instructions = () => {
+  const handleLogout = () => {
+    fetch('/Logout/', {
+      method: 'POST',
+      credentials: 'include'  // Include this line if you need to send cookies along with the request
+    })
+      .then(response => {
+        if (response.ok) {
+          // Logout successful, redirect to the login page
+          window.location.href = '/Login';
+        } else {
+          // Handle logout error
+          console.log('Logout failed');
+        }
+      })
+      .catch(error => {
+        // Handle any network or server error
+        console.error('Error occurred during logout:', error);
+      });
+  };
+
   return (
     <div>
       <Box sx={{ height: '100vh' }}>
@@ -163,6 +183,7 @@ export const Instructions = () => {
                 </Col>
               </Row>
               <Row className="justify-content-end">
+
                 <Button
                   style={{
                     maxWidth: '100px',
@@ -175,6 +196,18 @@ export const Instructions = () => {
                   variant="contained"
                 >
                   Next
+                </Button>
+                <Button
+                  style={{
+                    maxWidth: '100px',
+                    float: 'right',
+                    background: '#253B63',
+                    marginTop: '5px',
+                  }}
+                  onClick={handleLogout}
+                  variant="contained"
+                >
+                  Logout
                 </Button>
               </Row>
             </Col>

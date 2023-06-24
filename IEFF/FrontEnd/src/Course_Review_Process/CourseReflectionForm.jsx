@@ -15,7 +15,7 @@ export const CourseReflectionForm = ({ initialData }) => {
   const [role, setRole] = useState('');
 
 
-  
+
   useEffect(() => {
     const checkRole = () => {
       const url = 'http://127.0.0.1:8000/getRoleAndData/';
@@ -296,7 +296,7 @@ export const CourseReflectionForm = ({ initialData }) => {
             <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
               Save and Next
             </Button>
-            <Button variant="contained" color="secondary" component={Link} to="/CourseImprovementPlan">
+            <Button variant="contained" color="secondary" component={Link} to="/Weektoweekactivity">
               Back
             </Button>
           </Row>

@@ -11,30 +11,31 @@ import { CourseKeyIndicaters } from './Course_Review_Process/CourseKeyIndicaters
 import { CourseReflectionForm } from './Course_Review_Process/CourseReflectionForm';
 import { ReviewersFeedback } from './Course_Review_Process/ReviewersFeedback';
 import { Weektoweekactivity } from './Course_Review_Process/Weektoweekactivity';
-import {CourseFolder} from './Course_Review_Process/CourseFolder'
+import { CourseFolder } from './Course_Review_Process/CourseFolder';
+
 function App() {
   return (
     <div className="App">
       <Router>
         <Routes>
-          <Route path="/CourseFolder" element={<CourseFolder />} />
+          <Route path="/CourseFolder/" element={<CourseFolder />} />
           <Route path="/" element={<Login />} />
-          <Route path="/home" element={<Login />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/Dashboard" element={<Home />} />
-          <Route path="/Instructions" element={<Instructions />} />
-          <Route path="/UnderConstruction" element={<UnderConstruction />} />
-            <Route path="/ChallengesConcerns" element={<ChallengesConcerns />} />
-            <Route path="/CourseKeyIndicatersSecond" element={<CourseKeyIndicatersSecond />} />
-            <Route path="/CourseImprovementPlan" element={<CourseImprovementPlan />} />
-            <Route path="/CourseKeyIndicaters" element={<CourseKeyIndicaters />} />
-            <Route path="/CourseReflectionForm" element={<CourseReflectionForm />} />
-            <Route path="/ReviewersFeedback" element={<ReviewersFeedback />} />
-            <Route path="/Weektoweekactivity" element={<Weektoweekactivity />} />
-            </Routes>
-            </Router>
-            </div>
-);
+          <Route path="/home/" element={<Login />} />
+          <Route path="/Login/" element={<Login />} />
+          <Route path="/Dashboard/" element={<Home />} />
+          <Route path="/Instructions/" element={<Instructions />} />
+          <Route path="/UnderConstruction/" element={<UnderConstruction />} />
+          <Route path="/ChallengesConcerns/" element={<ChallengesConcerns />} />
+          <Route path="/CourseKeyIndicatersSecond/" element={<CourseKeyIndicatersSecond />} />
+          <Route path="/CourseImprovementPlan/" element={<CourseImprovementPlan />} />
+          <Route path="/CourseKeyIndicaters/" element={<CourseKeyIndicaters />} />
+          <Route path="/CourseReflectionForm/" element={<CourseReflectionForm />} />
+          <Route path="/ReviewersFeedback/" element={<ReviewersFeedback />} />
+          <Route path="/Weektoweekactivity/" element={<Weektoweekactivity />} />
+        </Routes>
+      </Router>
+    </div>
+  );
 }
 
 export default App;
