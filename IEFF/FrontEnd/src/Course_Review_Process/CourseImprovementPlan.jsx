@@ -67,6 +67,8 @@ export const CourseImprovementPlan = () => {
     checkRole();
   }, []);
 
+
+
   const handleInputChange = (id, column, value) => {
     setImprovementPlanData(prevData =>
       prevData.map(item => {
@@ -77,6 +79,12 @@ export const CourseImprovementPlan = () => {
       })
     );
   };
+
+
+
+
+
+
 
   const sendDataToServer = async () => {
     // console.log("Selected Course ID===========", selectedCourseID)
@@ -95,7 +103,7 @@ export const CourseImprovementPlan = () => {
     fetch('/saveimprovementplan/', requestOptions)
       .then(response => response.json())
       .then(data => {
-        console.log('Data received:', data);
+        // console.log('Data received:', data);
       })
       .catch(error => {
         console.error('Error sending data:', error);

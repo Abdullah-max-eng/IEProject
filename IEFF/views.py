@@ -106,21 +106,44 @@ def get_SelectedCourseBasedOnTerm(request):
             course_spring_selected_year = Courses.objects.filter(
                 academicYear=academic_year, courseCode=selected_course_code, term='Spring').first()
 
+            # print(course_fall_previous_year, course_fall_selected_year,
+            #       course_spring_selected_year)
+
+            CFPY_Grade_Card = GradesCard.objects.filter(
+                course=course_fall_previous_year).first()
+            # print("Card 11111", CFPY_Grade_Card)
+            CFSY_Grade_Card = GradesCard.objects.filter(
+                course=course_fall_selected_year).first()
+            # print("Card 44444", CFSY_Grade_Card)
+            CSSY_Grade_Card = GradesCard.objects.filter(
+                course=course_spring_selected_year).first()
+            # print("Card 3333", CSSY_Grade_Card)
+
+            CFPY_FailRate = CFPY_Grade_Card.get_grade_rate(
+                "F") if CFPY_Grade_Card else None
+            CFSY_FailRate = CFSY_Grade_Card.get_grade_rate(
+                "F") if CFSY_Grade_Card else None
+            CSSY_FailRate = CSSY_Grade_Card.get_grade_rate(
+                "F") if CSSY_Grade_Card else None
+
+            # print(CFPY_FailRate, CFSY_FailRate,
+            #       CSSY_FailRate, "These are fail rates")
+
             course_data = {
                 'courseTitle': selected_course.courseTitle,
                 'professorName': selected_course.teacher.user.username,
                 'students_fall_prev_year': course_fall_previous_year.numberOfStudent if course_fall_previous_year else '',
-                'fail_rate_fall_prev_year': str(course_fall_previous_year.failRate) if course_fall_previous_year else '',
+                'fail_rate_fall_prev_year': str(CFPY_FailRate) + "%" if course_fall_previous_year else '',
                 'drop_withdraw_fall_prev_year': course_fall_previous_year.dropOrWithdraw if course_fall_previous_year else '',
                 'satisfaction_score_fall_prev_year': str(course_fall_previous_year.studentSatisfactionScore) if course_fall_previous_year else '',
                 'teaching_quality_fall_prev_year': str(course_fall_previous_year.teachingQualityScore) if course_fall_previous_year else '',
                 'students_spring_selected_year': course_spring_selected_year.numberOfStudent if course_spring_selected_year else '',
-                'fail_rate_spring_selected_year': str(course_spring_selected_year.failRate) if course_spring_selected_year else '',
+                'fail_rate_spring_selected_year': str(CSSY_FailRate) + "%" if course_spring_selected_year else '',
                 'drop_withdraw_spring_selected_year': course_spring_selected_year.dropOrWithdraw if course_spring_selected_year else '',
                 'satisfaction_score_spring_selected_year': str(course_spring_selected_year.studentSatisfactionScore) if course_spring_selected_year else '',
                 'teaching_quality_spring_selected_year': str(course_spring_selected_year.teachingQualityScore) if course_spring_selected_year else '',
                 'students_fall_selected_year': course_fall_selected_year.numberOfStudent if course_fall_selected_year else '',
-                'fail_rate_fall_selected_year': str(course_fall_selected_year.failRate) if course_fall_selected_year else '',
+                'fail_rate_fall_selected_year': str(CFSY_FailRate) + "%" if course_fall_selected_year else '',
                 'drop_withdraw_fall_selected_year': course_fall_selected_year.dropOrWithdraw if course_fall_selected_year else '',
                 'satisfaction_score_fall_selected_year': str(course_fall_selected_year.studentSatisfactionScore) if course_fall_selected_year else '',
                 'teaching_quality_fall_selected_year': str(course_fall_selected_year.teachingQualityScore) if course_fall_selected_year else ''
@@ -469,6 +492,41 @@ def grade_rates(request):
     return JsonResponse(grade_rates)
 
     # return HttpResponseBadRequest("Invalid request")
+
+
+def ReviwersFeeBack(request):
+    if request.user.is_authenticated:
+        print("Request Received")
+        if request.method == 'POST':
+            course_id = request.GET.get('Cid')
+            dataReceived = json.loads(request.body)
+            try:
+                course = get_object_or_404(Courses, id=course_id)
+            except Courses.DoesNotExist:
+                return HttpResponseBadRequest("Invalid Course ID")
+
+            feedback, created = ReviewersFeedback.objects.get_or_create(
+                course=course)
+            feedback.cirteriaStatus = dataReceived['criteria']
+            feedback.Rationale = dataReceived['rationale']
+            feedback.otherComments = dataReceived['otherComments']
+            feedback.save()
+
+            return HttpResponse("Feedback saved successfully")
+
+        if request.method == 'GET':
+            course_id = request.GET.get('Cid')
+            try:
+                course = get_object_or_404(Courses, id=course_id)
+                feedback = get_object_or_404(ReviewersFeedback, course=course)
+                data = {
+                    'criteria': feedback.cirteriaStatus,
+                    'rationale': feedback.Rationale,
+                    'otherComments': feedback.otherComments
+                }
+                return JsonResponse(data)
+            except (Courses.DoesNotExist, ReviewersFeedback.DoesNotExist):
+                return HttpResponseBadRequest("Invalid Course ID")
 
 
 @csrf_exempt

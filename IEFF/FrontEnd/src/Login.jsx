@@ -1,7 +1,7 @@
-import { useState, React } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBrowserHistory } from 'history';
 import Button from '@mui/material/Button';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -12,28 +12,30 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-
-
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Loading from 'react-loading';
 
 export const Login = () => {
-  
-
-
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Reviewer'); // Added state for role selection
+  const [role, setRole] = useState('Reviewer');
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
 
-
-
-
-
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setIsLoading(true);
+
     const url = 'http://127.0.0.1:8000/loginHandler/';
     fetch(url, {
       method: 'POST',
@@ -46,41 +48,35 @@ export const Login = () => {
         role: role,
       }),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         return response.json();
       })
-      .then(data => {
-        if(data.success){
-          navigate('/Dashboard', { state: { role: role } });// Pass the role as state to the /Dashboard component 
-          alert(data.success);
-        }else{ alert(data.error);}
-        
+      .then((data) => {
+        if (data.success) {
+          navigate('/Dashboard', { state: { role: role } });
+          toast.success(data.success);
+        } else {
+          toast.error(data.error);
+        }
+        setIsLoading(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('There was a problem with the fetch operation:', error);
+        setIsLoading(false);
+        toast.error('Server is down. Please try again later.');
       });
   };
-
-
-
-
-
-
 
   return (
     <div>
       <Box sx={{ height: '100vh' }}>
         <NavBarTop />
         <Container fixed>
-          <Row className="fs-3 fw-bold d-flex justify-content-center">
-            Login
-          </Row>
-          <Row className="fs-4 fw-bold d-flex justify-content-center">
-            Have an account?
-          </Row>
+          <Row className="fs-3 fw-bold d-flex justify-content-center">Login</Row>
+          <Row className="fs-4 fw-bold d-flex justify-content-center">Have an account?</Row>
           <Row className="d-flex justify-content-center">
             <Box sx={{ width: '40vh' }}>
               <Form>
@@ -104,7 +100,6 @@ export const Login = () => {
                   />
                 </Form.Group>
 
-                {/* Added dropdown for role selection */}
                 <FormControl sx={{ minWidth: 120 }} className="mb-3">
                   <InputLabel id="role-label">Role</InputLabel>
                   <Select
@@ -112,30 +107,33 @@ export const Login = () => {
                     id="role-select"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    >
+                  >
                     <MenuItem value="Reviewer">Reviewer</MenuItem>
                     <MenuItem value="Professor">Professor</MenuItem>
-                    </Select>
-                    </FormControl>
-                    <Button
-              style={{ background: '#253B63' }}
-              variant="contained"
-              onClick={handleSubmit}
-            >
-              Sign In
-            </Button>
-          </Form>
-          <a
-            href="http://google.com"
-            style={{ color: '#000000' }}
-            className="fw-bold"
-          >
-            Forget Password
-          </a>
-        </Box>
-      </Row>
-    </Container>
-  </Box>
-</div>);
-};
+                  </Select>
+                </FormControl>
 
+                <Button
+                  style={{ background: '#253B63' }}
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loading type="spin" color="#FFF" height={20} width={20} />
+                  ) : (
+                    'Sign In'
+                  )}
+                </Button>
+              </Form>
+              <a href="http://google.com" style={{ color: '#000000' }} className="fw-bold">
+                Forget Password
+              </a>
+            </Box>
+          </Row>
+        </Container>
+      </Box>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={true} />
+    </div>
+  );
+};

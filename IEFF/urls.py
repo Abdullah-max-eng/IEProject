@@ -22,5 +22,6 @@ urlpatterns = [
          name='ChallengesAndConcerns'),
     path('grade_rates/', views.grade_rates, name='grade_rates'),
     path('Logout/', views.Logout, name='Logout'),
-    path('<path:route>/', views.index, name='ReactApp'),  # New catch-all route
+    #     path('<path:route>/', views.index, name='ReactApp'),  # New catch-all route
+    path('ReviwersFeeBack/', views.ReviwersFeeBack, name='ReviwersFeeBack'),
 ]
