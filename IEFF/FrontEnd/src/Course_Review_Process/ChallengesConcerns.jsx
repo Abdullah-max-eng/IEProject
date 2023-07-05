@@ -16,7 +16,7 @@ export const ChallengesConcerns = () => {
 
   useEffect(() => {
     const checkRole = () => {
-      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -32,7 +32,7 @@ export const ChallengesConcerns = () => {
 
   // To get the Course ID selected in the first page
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/get_selected_course_id/')
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
@@ -47,7 +47,7 @@ export const ChallengesConcerns = () => {
   useEffect(() => {
     if (selectedCourseID) {
       const getExisitngConcerns = () => {
-        fetch(`http://127.0.0.1:8000/ChallengesAndConcerns/?courseId=${selectedCourseID}`)
+        fetch(`${process.env.REACT_APP_SERVER_IP}/ChallengesAndConcerns/?courseId=${selectedCourseID}`)
           .then(response => response.json())
           .then(data => {
             // console.log(data)
@@ -88,7 +88,7 @@ export const ChallengesConcerns = () => {
     const jsonData = JSON.stringify(concernsData);
     // console.log(jsonData);
 
-    fetch(`/ChallengesAndConcerns/?Cid=${selectedCourseID}`, {
+    fetch(`${process.env.REACT_APP_SERVER_IP}/ChallengesAndConcerns/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

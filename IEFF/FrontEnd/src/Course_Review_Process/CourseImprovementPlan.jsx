@@ -27,7 +27,7 @@ export const CourseImprovementPlan = () => {
   // Get the current data
   useEffect(() => {
     if (selectedCourseID !== '') {
-      fetch(`/saveimprovementplan/?selectedCourseID=${selectedCourseID}`, {
+      fetch(`${process.env.REACT_APP_SERVER_IP}/saveimprovementplan/?selectedCourseID=${selectedCourseID}`, {
         method: 'GET',
       })
         .then(response => response.json())
@@ -43,7 +43,7 @@ export const CourseImprovementPlan = () => {
   }, [selectedCourseID]);
 
   useEffect(() => {
-    fetch('/get_selected_course_id/')
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
@@ -55,7 +55,7 @@ export const CourseImprovementPlan = () => {
 
   useEffect(() => {
     const checkRole = () => {
-      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -100,7 +100,7 @@ export const CourseImprovementPlan = () => {
 
     // console.log("Send data from Front end-------", requestOptions)
 
-    fetch('/saveimprovementplan/', requestOptions)
+    fetch(`${process.env.REACT_APP_SERVER_IP}/saveimprovementplan/`, requestOptions)
       .then(response => response.json())
       .then(data => {
         // console.log('Data received:', data);

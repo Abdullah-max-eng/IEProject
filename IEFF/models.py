@@ -221,3 +221,6 @@ class GradesCard(models.Model):
 
     def get_total_grades(self):
         return sum([self.Numberof_A, self.Numberof_B, self.Numberof_C, self.Numberof_D, self.Numberof_F, self.Numberof_W])
+
+    def get_total_students(self):
+        return sum([self.Numberof_A, self.Numberof_B, self.Numberof_C, self.Numberof_D, self.Numberof_F])

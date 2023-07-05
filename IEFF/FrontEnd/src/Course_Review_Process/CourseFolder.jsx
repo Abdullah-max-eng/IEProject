@@ -18,7 +18,7 @@ export const CourseFolder = () => {
   // To get Role
   useEffect(() => {
     const checkRole = () => {
-      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -31,7 +31,7 @@ export const CourseFolder = () => {
 
   // To get the Course ID selected in the first page
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/get_selected_course_id/')
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
@@ -41,32 +41,39 @@ export const CourseFolder = () => {
       });
   }, []);
 
-  const saveToDB = () => {
-    const postData = JSON.stringify({
-      link: sharedDriveLink,
-      courseId: selectedCourseID
-    });
 
-    fetch("http://127.0.0.1:8000/SaveLink/", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: postData
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          setIsLinkSaved(true);
-        } else {
-          setIsLinkSaved(false);
-        }
-        setShowConfirmation(true);
-      })
-      .catch(error => {
-        console.error('Error saving data:', error);
+
+
+  const saveToDB = () => {
+    if (selectedCourseID) {
+      const postData = JSON.stringify({
+        link: sharedDriveLink,
+        courseId: selectedCourseID
       });
+
+      fetch(`${process.env.REACT_APP_SERVER_IP}/SaveLink/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: postData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            setIsLinkSaved(true);
+          } else {
+            setIsLinkSaved(false);
+          }
+          setShowConfirmation(true);
+        })
+        .catch(error => {
+          console.error('Error saving data:', error);
+        });
+    }
   };
+
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -78,24 +85,30 @@ export const CourseFolder = () => {
 
   // Get the existing Data
   useEffect(() => {
-    const getExistingLink = () => {
-      fetch(`http://127.0.0.1:8000/SaveLink/?courseId=${selectedCourseID}`)
-        .then(response => response.json())
-        .then(data => {
-          setSharedDriveLink(data.link);
-        })
-        .catch(error => {
-          console.error('Error getting existing link:', error);
-        });
-    };
+    if (selectedCourseID) {
+      const getExistingLink = () => {
+        fetch(`${process.env.REACT_APP_SERVER_IP}/SaveLink/?courseId=${selectedCourseID}`)
+          .then(response => response.json())
+          .then(data => {
+            setSharedDriveLink(data.link);
+          })
+          .catch(error => {
+            console.error('Error getting existing link:', error);
+          });
+      };
 
-    getExistingLink();
+      getExistingLink();
+    }
   }, [selectedCourseID]);
+
+
 
 
   const nextPage = () => {
     navigate('/CourseKeyIndicatersSecond');
   };
+
+
 
   const openLink = () => {
     window.open(sharedDriveLink.includes('http') ? sharedDriveLink : `https://${sharedDriveLink}`, '_blank');

@@ -80,6 +80,7 @@ def getRoleAndData(request):
 def get_SelectedCourseBasedOnTerm(request):
     if request.user.is_authenticated:
         try:
+            teacher = request.user.SystemUser
             selected_course_ID = request.GET.get('courseID')
             academic_year = request.GET.get('academicYear')
             start_year = int(academic_year.split('-')[0]) - 1
@@ -88,23 +89,23 @@ def get_SelectedCourseBasedOnTerm(request):
 
             try:
                 selected_course = Courses.objects.get(
-                    pk=selected_course_ID, academicYear=academic_year)
+                    pk=selected_course_ID, academicYear=academic_year, teacher=teacher)
                 selected_course_code = selected_course.courseCode
                 # selected_course_Title = selected_course.courseTitle
             except ObjectDoesNotExist:
                 return JsonResponse({'error': 'Selected course does not exist.'})
 
-            # Store the selected course ID in the session
+            # Store the selected course ID in the session (------Very Importan-----)
             session = SessionStore(request.session.session_key)
             session['selected_course_id'] = selected_course_ID
             session.save()
 
             course_fall_previous_year = Courses.objects.filter(
-                academicYear=one_year_before_academic_year, courseCode=selected_course_code, term='Fall').first()
+                academicYear=one_year_before_academic_year, courseCode=selected_course_code, term='Fall', teacher=teacher).first()
             course_fall_selected_year = Courses.objects.filter(
-                academicYear=academic_year, courseCode=selected_course_code, term='Fall').first()
+                academicYear=academic_year, courseCode=selected_course_code, term='Fall', teacher=teacher).first()
             course_spring_selected_year = Courses.objects.filter(
-                academicYear=academic_year, courseCode=selected_course_code, term='Spring').first()
+                academicYear=academic_year, courseCode=selected_course_code, term='Spring', teacher=teacher).first()
 
             # print(course_fall_previous_year, course_fall_selected_year,
             #       course_spring_selected_year)
@@ -126,29 +127,64 @@ def get_SelectedCourseBasedOnTerm(request):
             CSSY_FailRate = CSSY_Grade_Card.get_grade_rate(
                 "F") if CSSY_Grade_Card else None
 
-            # print(CFPY_FailRate, CFSY_FailRate,
-            #       CSSY_FailRate, "These are fail rates")
+            if CFPY_Grade_Card:
+                try:
+                    CFPY_NumberOfStudents = CFPY_Grade_Card.get_total_students()
+                    CFPY_WithDrawRates = CFPY_Grade_Card.get_grade_rate("W")
+                    # print("Number of students in CFPY_Grade_Card:",
+                    #       CFPY_NumberOfStudents)
+                    # print("Withdraw Rate in CFPY_Grade_Card:", CFPY_WithDrawRates)
+                except Exception as e:
+                    print("Error occurred while processing CFPY_Grade_Card:", e)
+            else:
+                # print("CFPY_Grade_Card does not exist")
+                pass
+
+            if CFSY_Grade_Card:
+                try:
+                    CFSY_NumberOfStudents = CFSY_Grade_Card.get_total_students()
+                    CFSY_WithDrawRates = CFSY_Grade_Card.get_grade_rate("W")
+                    # print("Number of students in CFSY_Grade_Card:",
+                    #       CFSY_NumberOfStudents)
+                    # print("Withdraw Rate in CFSY_Grade_Card:", CFSY_WithDrawRates)
+                except Exception as e:
+                    print("Error occurred while processing CFSY_Grade_Card:", e)
+            else:
+                # print("CFSY_Grade_Card does not exist")
+                pass
+
+            if CSSY_Grade_Card:
+                try:
+                    CSSY_NumberOfStudents = CSSY_Grade_Card.get_total_students()
+                    CSSY_WithDrawRates = CSSY_Grade_Card.get_grade_rate("W")
+                    # print("Number of students in CSSY_Grade_Card:",
+                    #       CSSY_NumberOfStudents)
+                    # print("Withdraw Rate in CSSY_Grade_Card:", CSSY_WithDrawRates)
+                except Exception as e:
+                    print("Error occurred while processing CSSY_Grade_Card:", e)
+            else:
+                # print("CSSY_Grade_Card does not exist")
+                pass
 
             course_data = {
                 'courseTitle': selected_course.courseTitle,
                 'professorName': selected_course.teacher.user.username,
-                'students_fall_prev_year': course_fall_previous_year.numberOfStudent if course_fall_previous_year else '',
+                'students_fall_prev_year': CFPY_NumberOfStudents if course_fall_previous_year else '',
                 'fail_rate_fall_prev_year': str(CFPY_FailRate) + "%" if course_fall_previous_year else '',
-                'drop_withdraw_fall_prev_year': course_fall_previous_year.dropOrWithdraw if course_fall_previous_year else '',
+                'drop_withdraw_fall_prev_year': str(CFPY_WithDrawRates) + "%" if course_fall_previous_year else '',
                 'satisfaction_score_fall_prev_year': str(course_fall_previous_year.studentSatisfactionScore) if course_fall_previous_year else '',
                 'teaching_quality_fall_prev_year': str(course_fall_previous_year.teachingQualityScore) if course_fall_previous_year else '',
-                'students_spring_selected_year': course_spring_selected_year.numberOfStudent if course_spring_selected_year else '',
+                'students_spring_selected_year': CSSY_NumberOfStudents if course_spring_selected_year else '',
                 'fail_rate_spring_selected_year': str(CSSY_FailRate) + "%" if course_spring_selected_year else '',
-                'drop_withdraw_spring_selected_year': course_spring_selected_year.dropOrWithdraw if course_spring_selected_year else '',
+                'drop_withdraw_spring_selected_year': str(CSSY_WithDrawRates) + "%" if course_spring_selected_year else '',
                 'satisfaction_score_spring_selected_year': str(course_spring_selected_year.studentSatisfactionScore) if course_spring_selected_year else '',
                 'teaching_quality_spring_selected_year': str(course_spring_selected_year.teachingQualityScore) if course_spring_selected_year else '',
-                'students_fall_selected_year': course_fall_selected_year.numberOfStudent if course_fall_selected_year else '',
+                'students_fall_selected_year': CFSY_NumberOfStudents if course_fall_selected_year else '',
                 'fail_rate_fall_selected_year': str(CFSY_FailRate) + "%" if course_fall_selected_year else '',
-                'drop_withdraw_fall_selected_year': course_fall_selected_year.dropOrWithdraw if course_fall_selected_year else '',
+                'drop_withdraw_fall_selected_year': str(CFSY_WithDrawRates) + "%" if course_fall_selected_year else '',
                 'satisfaction_score_fall_selected_year': str(course_fall_selected_year.studentSatisfactionScore) if course_fall_selected_year else '',
                 'teaching_quality_fall_selected_year': str(course_fall_selected_year.teachingQualityScore) if course_fall_selected_year else ''
             }
-            # print("Dataaa++++++++++++++++++++++", course_data)
 
             return JsonResponse({'coursesBasedOnTerm_data': course_data})
         except ValueError:
@@ -383,7 +419,7 @@ def SaveLink(request):
 
         elif request.method == 'GET':
             course_id = request.GET.get('courseId')
-            print("Course id = ", course_id)
+            # print("Course id = ", course_id)
             if course_id:
                 course = get_object_or_404(
                     Courses, id=course_id)
@@ -455,17 +491,20 @@ def grade_rates(request):
     # if request.user.is_authenticated:
     courseID = request.GET.get('courseID')
     academicYear = request.GET.get('academicYear')
+    teacher = request.user.SystemUser
+
+    # print("Teacher,", teacher)
     try:
-        course = get_object_or_404(Courses, pk=courseID)
+        course = get_object_or_404(Courses, pk=courseID, teacher=teacher)
         courseCode = course.courseCode
     except Courses.DoesNotExist:
         return HttpResponseBadRequest("Course not found")
 
     spring_term_courses = Courses.objects.filter(
-        term="Spring", academicYear=academicYear, courseCode=courseCode
+        term="Spring", academicYear=academicYear, courseCode=courseCode, teacher=teacher
     )
     fall_term_courses = Courses.objects.filter(
-        term="Fall", academicYear=academicYear, courseCode=courseCode
+        term="Fall", academicYear=academicYear, courseCode=courseCode, teacher=teacher
     )
     # print(spring_term_courses, fall_term_courses)
 

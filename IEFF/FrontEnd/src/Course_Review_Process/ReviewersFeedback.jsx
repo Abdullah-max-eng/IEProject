@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
@@ -9,6 +9,7 @@ import '../style.css';
 import './ReviewersFeedback.css';
 import TextField from '@mui/material/TextField';
 
+
 export const ReviewersFeedback = () => {
   const [criteria, setCriteria] = useState('');
   const [rationale, setRationale] = useState('');
@@ -16,10 +17,13 @@ export const ReviewersFeedback = () => {
   const [role, setRole] = useState('');
   const [selectedCourseID, setSelectedCourseID] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
+  const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const checkRole = () => {
-      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -32,7 +36,7 @@ export const ReviewersFeedback = () => {
   }, []);
 
   useEffect(() => {
-    fetch('/get_selected_course_id/')
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
@@ -46,7 +50,7 @@ export const ReviewersFeedback = () => {
     if (selectedCourseID) {
       const fetchData = async () => {
         try {
-          const response = await fetch(`http://127.0.0.1:8000/ReviwersFeeBack/?Cid=${selectedCourseID}`);
+          const response = await fetch(`${process.env.REACT_APP_SERVER_IP}/ReviwersFeeBack/?Cid=${selectedCourseID}`);
           if (response.ok) {
             const data = await response.json();
             setCriteria(data.criteria);
@@ -87,7 +91,7 @@ export const ReviewersFeedback = () => {
     };
     const csrftoken = getCookie('csrftoken');
 
-    fetch(`http://127.0.0.1:8000/ReviwersFeeBack/?Cid=${selectedCourseID}`, {
+    fetch(`${process.env.REACT_APP_SERVER_IP}/ReviwersFeeBack/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -113,6 +117,10 @@ export const ReviewersFeedback = () => {
     return cookieValue ? cookieValue.pop() : '';
   }
 
+  function nextPage() {
+    navigate('/Instructions')
+
+  }
 
 
   // In main 
@@ -218,14 +226,33 @@ export const ReviewersFeedback = () => {
                 </Button>
               </Col>
               <Col>
-                <Button
-                  style={{ background: '#253B63', float: 'right' }}
-                  onClick={handleSubmit}
-                  variant="contained"
-                >
-                  Submit
-                </Button>
+                {role !== 'Professor' ? (
+                  <Button
+                    style={{ background: '#253B63', float: 'right' }}
+                    onClick={handleSubmit}
+                    variant="contained"
+                    disabled={role === 'Professor'}
+                  >
+                    Submit
+                  </Button>
+                ) : null}
               </Col>
+
+
+              <Col>
+                {role === 'Professor' ? (
+                  <Button
+                    style={{ background: '#253B63', float: 'right' }}
+                    onClick={nextPage}
+                    variant="contained"
+
+                  >
+                    Next
+                  </Button>
+                ) : null}
+              </Col>
+
+
             </Row>
           </Row>
         </Container>

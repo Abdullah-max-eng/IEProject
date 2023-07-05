@@ -16,6 +16,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loading from 'react-loading';
 
+
+
+
+
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,11 +36,13 @@ export const Login = () => {
     return () => clearTimeout(timer);
   }, []);
 
+
+
   const handleSubmit = (event) => {
     event.preventDefault();
     setIsLoading(true);
 
-    const url = 'http://127.0.0.1:8000/loginHandler/';
+    const url = `${process.env.REACT_APP_SERVER_IP}/loginHandler/`;
     fetch(url, {
       method: 'POST',
       headers: {
