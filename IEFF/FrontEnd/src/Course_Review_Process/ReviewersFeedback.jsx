@@ -8,6 +8,9 @@ import { Row, Col, Alert } from 'react-bootstrap';
 import '../style.css';
 import './ReviewersFeedback.css';
 import TextField from '@mui/material/TextField';
+import { getCookie } from '../assets/getCoookies.js';
+
+
 
 
 export const ReviewersFeedback = () => {
@@ -21,6 +24,8 @@ export const ReviewersFeedback = () => {
 
 
 
+
+  // geting the role of the user
   useEffect(() => {
     const checkRole = () => {
       const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
@@ -35,6 +40,9 @@ export const ReviewersFeedback = () => {
     checkRole();
   }, []);
 
+
+
+  // getting the selected if in the first page
   useEffect(() => {
     fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
@@ -46,6 +54,9 @@ export const ReviewersFeedback = () => {
       });
   }, []);
 
+
+
+  // Getting the current data
   useEffect(() => {
     if (selectedCourseID) {
       const fetchData = async () => {
@@ -89,6 +100,8 @@ export const ReviewersFeedback = () => {
       rationale: rationale,
       otherComments: otherComments,
     };
+
+
     const csrftoken = getCookie('csrftoken');
 
     fetch(`${process.env.REACT_APP_SERVER_IP}/ReviwersFeeBack/?Cid=${selectedCourseID}`, {
@@ -102,6 +115,7 @@ export const ReviewersFeedback = () => {
       .then(response => {
         if (response.ok) {
           setFeedbackMessage('Feedback saved successfully');
+          nextPage()
         } else {
           setFeedbackMessage('Error saving feedback');
         }
@@ -112,10 +126,7 @@ export const ReviewersFeedback = () => {
       });
   };
 
-  function getCookie(name) {
-    const cookieValue = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return cookieValue ? cookieValue.pop() : '';
-  }
+
 
   function nextPage() {
     navigate('/Instructions')
@@ -245,6 +256,7 @@ export const ReviewersFeedback = () => {
                     style={{ background: '#253B63', float: 'right' }}
                     onClick={nextPage}
                     variant="contained"
+
 
                   >
                     Next

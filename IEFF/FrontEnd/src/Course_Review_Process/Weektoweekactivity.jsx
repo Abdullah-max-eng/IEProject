@@ -6,7 +6,7 @@ import Container from '@mui/material/Container';
 import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
 import { Row, Col } from 'react-bootstrap';
 import TextField from '@mui/material/TextField';
-
+import { getCookie } from '../assets/getCoookies.js';
 export const Weektoweekactivity = () => {
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState(null);
@@ -68,13 +68,14 @@ export const Weektoweekactivity = () => {
       weekindex: index + 1,
       feedback: feedback
     }));
-
+    const csrftoken = getCookie('csrftoken');
     const postData = JSON.stringify(updatedData);
-    // console.log("----------------------------", postData);
     fetch(`${process.env.REACT_APP_SERVER_IP}/AddorGetDataWeekToWeek/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+
       },
       body: postData
     })

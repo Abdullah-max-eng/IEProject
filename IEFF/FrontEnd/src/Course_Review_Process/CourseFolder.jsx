@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { getCookie } from '../assets/getCoookies';
 export const CourseFolder = () => {
   const navigate = useNavigate();
   const [sharedDriveLink, setSharedDriveLink] = useState('');
@@ -50,11 +50,14 @@ export const CourseFolder = () => {
         link: sharedDriveLink,
         courseId: selectedCourseID
       });
+      const csrftoken = getCookie('csrftoken');
 
       fetch(`${process.env.REACT_APP_SERVER_IP}/SaveLink/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+
         },
         body: postData
       })
@@ -107,6 +110,11 @@ export const CourseFolder = () => {
   const nextPage = () => {
     navigate('/CourseKeyIndicatersSecond');
   };
+
+  const previousePage = () => {
+    navigate('/CourseKeyIndicaters');
+
+  }
 
 
 
@@ -167,6 +175,21 @@ export const CourseFolder = () => {
             variant="contained"
           >
             Next
+          </Button>
+          <Button
+            onClick={previousePage}
+            style={{
+              background: '#253B63',
+              borderRadius: '12px',
+              textTransform: 'none',
+              minWidth: '286px',
+              maxWidth: '286px',
+              marginTop: '10px',
+            }}
+            className="p-0 fw-bold"
+            variant="contained"
+          >
+            Previouse
           </Button>
           <Button
             onClick={openLink}

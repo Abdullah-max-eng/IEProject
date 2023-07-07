@@ -8,7 +8,7 @@ import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
 import { Row, Col, Table } from 'react-bootstrap';
 import CLOs from '../CLOs.png';
 import Select from 'react-select';
-
+import { getCookie } from '../assets/getCoookies.js';
 
 
 
@@ -124,11 +124,15 @@ export const CourseKeyIndicatersSecond = () => {
 
   // To save data to the database
   const saveDataToDB = () => {
-    console.log(formData);
+
+    const csrftoken = getCookie('csrftoken');
+
     fetch(`${process.env.REACT_APP_SERVER_IP}/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+
       },
       body: JSON.stringify(formData)
     })

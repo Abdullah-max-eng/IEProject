@@ -15,7 +15,7 @@ import InputLabel from '@mui/material/InputLabel';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loading from 'react-loading';
-
+import { getCookie } from './assets/getCoookies.js';
 
 
 
@@ -41,12 +41,14 @@ export const Login = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     setIsLoading(true);
-
+    const csrftoken = getCookie('csrftoken');
     const url = `${process.env.REACT_APP_SERVER_IP}/loginHandler/`;
     fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+
       },
       body: JSON.stringify({
         email: email,

@@ -10,11 +10,22 @@ import Alert from 'react-bootstrap/Alert';
 import '../style.css';
 import reviewCritria from '../reviewCritria.png';
 import arrow from '../arrow.svg';
+import { getCookie } from '../assets/getCoookies.js';
+
 
 export const Instructions = () => {
+
+
+
+
+
   const handleLogout = () => {
+    const csrftoken = getCookie('csrftoken');
     fetch('/Logout/', {
       method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
       credentials: 'include'  // Include this line if you need to send cookies along with the request
     })
       .then(response => {

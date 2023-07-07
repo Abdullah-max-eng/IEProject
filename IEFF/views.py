@@ -16,7 +16,6 @@ from .models import *
 # Create your views here.
 
 
-@csrf_exempt
 def login_view(request):
     logout(request)
     if request.method == 'POST':
@@ -204,7 +203,6 @@ def get_selected_course_id(request):
         return JsonResponse({'error': 'User not authenticated'})
 
 
-@csrf_exempt
 def AddOrGetDataSecondKeyIndicators(request):
     selected_course_ID = request.GET.get('Cid')
 
@@ -277,7 +275,6 @@ def index(request, route=''):
     return render(request, 'index.html')
 
 
-@csrf_exempt
 def AddorGetDataWeekToWeek(request):
     selected_course_ID = request.GET.get('Cid')
     if request.user.is_authenticated:
@@ -323,7 +320,6 @@ def AddorGetDataWeekToWeek(request):
     return HttpResponseBadRequest('Invalid request')
 
 
-@csrf_exempt
 def saveimprovementplan(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
@@ -393,7 +389,6 @@ def saveimprovementplan(request):
         return JsonResponse({'message': 'User not authenticated'}, status=401)
 
 
-@csrf_exempt
 def SaveLink(request):
     if request.user.is_authenticated:
 
@@ -433,9 +428,9 @@ def SaveLink(request):
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
 
-@csrf_exempt
 def ChallengesAndConcerns(request):
     if request.user.is_authenticated:
+
         if request.method == 'POST':
             course_id = request.GET.get('Cid')
             try:
@@ -456,8 +451,8 @@ def ChallengesAndConcerns(request):
                         challenge.save()
             except json.JSONDecodeError as e:
                 return HttpResponseBadRequest("Invalid JSON data")
-            print("Data saved successfully")
-            return HttpResponse("Data saved successfully")
+
+            return JsonResponse({'success': 'Data saved successfully'})
 
         elif request.method == "GET":
             course_id = request.GET.get('courseId')
@@ -568,7 +563,6 @@ def ReviwersFeeBack(request):
                 return HttpResponseBadRequest("Invalid Course ID")
 
 
-@csrf_exempt
 def Logout(request):
     logout(request)  # Logout the current user
     return JsonResponse({'success': True})

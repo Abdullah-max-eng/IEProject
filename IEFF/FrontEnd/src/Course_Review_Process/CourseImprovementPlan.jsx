@@ -6,7 +6,7 @@ import Container from '@mui/material/Container';
 import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
 import { Row, Col, Table } from 'react-bootstrap';
 import './CourseImprovementPlan.css';
-
+import { getCookie } from '../assets/getCoookies.js';
 export const CourseImprovementPlan = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
@@ -89,11 +89,14 @@ export const CourseImprovementPlan = () => {
   const sendDataToServer = async () => {
     // console.log("Selected Course ID===========", selectedCourseID)
     // console.log(improvementPlanData);
+    const csrftoken = getCookie('csrftoken');
 
     const requestOptions = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+
       },
       body: JSON.stringify({ improvementPlanData, selectedCourseID })
     };
