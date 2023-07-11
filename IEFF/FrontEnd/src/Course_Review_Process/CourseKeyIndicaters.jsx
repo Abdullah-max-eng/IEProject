@@ -110,6 +110,9 @@ export const CourseKeyIndicaters = () => {
       const springRates = Object.values(gradeRates.Spring || {}).map(rate => rate || 0);
 
       const ctx = chartRef.current.getContext('2d');
+
+
+
       new Chart(ctx, {
         type: 'bar',
         data: {
@@ -200,6 +203,8 @@ export const CourseKeyIndicaters = () => {
         },
       });
     }, [gradeRates]);
+
+
 
     return (
       <div style={{ margin: '20px', padding: '20px', border: '1px solid #DDDDDD', borderRadius: '8px' }}>

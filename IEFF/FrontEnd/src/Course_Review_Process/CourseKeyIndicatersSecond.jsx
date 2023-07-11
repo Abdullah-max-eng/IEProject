@@ -9,6 +9,7 @@ import { Row, Col, Table } from 'react-bootstrap';
 import CLOs from '../CLOs.png';
 import Select from 'react-select';
 import { getCookie } from '../assets/getCoookies.js';
+import { Bar } from 'react-chartjs-2';
 
 
 
@@ -22,6 +23,9 @@ export const CourseKeyIndicatersSecond = () => {
   const [formData, setFormData] = useState([]);
   const [saveStatus, setSaveStatus] = useState('');
   const navigate = useNavigate();
+  const [chartData, setChartData] = useState(null);
+
+
 
   const assessmentComponentOptions = [
     { value: 'Assignment', label: 'Assignment' },
@@ -85,6 +89,14 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
+  // To get the Course ID selected in the first page
+  useEffect(() => {
+    console.log(formData)
+  }, [formData]);
+
+
+
+
 
   // To get the existing data
   useEffect(() => {
@@ -95,10 +107,8 @@ export const CourseKeyIndicatersSecond = () => {
         .then(response => response.json())
         .then(data => {
           setFormData(data);
-
           // Extract existing assessment components
           const existingComponents = data.flatMap(item => item.assignments);
-
           // Create new options array by combining existing and default options
           const updatedOptions = assessmentComponentOptions.map(option => {
             // Check if the existing component already exists in the default options
@@ -111,6 +121,33 @@ export const CourseKeyIndicatersSecond = () => {
 
           // Update the assessment component options state
           setSelectedComponents(updatedOptions);
+          // Prepare data for chart
+          const chartLabels = data.map(item => `CLO ${item.cloIndex}`);
+          const chartMarks = data.map(item => item.marks);
+          const chartWeight = data.map(item => item.weight)
+          setChartData({
+            labels: chartLabels,
+            datasets: [
+              {
+                label: 'Marks',
+                data: chartMarks,
+                backgroundColor: 'blue',
+                borderColor: 'blue',
+                borderWidth: 1
+              },
+              {
+                label: 'Weight',
+                data: chartWeight,
+                backgroundColor: 'orange',
+                borderColor: 'orange',
+                borderWidth: 1
+              }
+            ]
+          });
+
+
+
+
         })
         .catch(error => {
           console.error('Error fetching data:', error);
@@ -182,10 +219,14 @@ export const CourseKeyIndicatersSecond = () => {
 
 
   const handleMarksChange = (event, cloIndex) => {
-    const { value } = event.target;
+    let { value } = event.target;
+    value = value.replace(/\D/g, '');
+    const numericValue = parseInt(value, 10);
+    const limitedValue = isNaN(numericValue) ? 0 : Math.min(numericValue, 100);
+
     const updatedData = formData.map(item => {
       if (item.cloIndex === cloIndex) {
-        return { ...item, marks: value };
+        return { ...item, marks: limitedValue };
       } else {
         return item;
       }
@@ -198,10 +239,16 @@ export const CourseKeyIndicatersSecond = () => {
 
 
   const handleWeightChange = (event, cloIndex) => {
-    const { value } = event.target;
+    let { value } = event.target;
+    // Remove any non-digit characters from the entered value
+    value = value.replace(/\D/g, '');
+    // Convert the value to a number
+    const numericValue = parseInt(value, 10);
+
+    const limitedValue = isNaN(numericValue) ? 0 : Math.min(numericValue, 100);
     const updatedData = formData.map(item => {
       if (item.cloIndex === cloIndex) {
-        return { ...item, weight: value };
+        return { ...item, weight: limitedValue };
       } else {
         return item;
       }
@@ -269,6 +316,8 @@ export const CourseKeyIndicatersSecond = () => {
               value={marks}
               onChange={event => handleMarksChange(event, index + 1)}
               disabled={role === 'Reviewer'}
+              max={100}
+              pattern="[0-9]*"
             />
           </td>
           <td>
@@ -278,6 +327,8 @@ export const CourseKeyIndicatersSecond = () => {
               value={weight}
               onChange={event => handleWeightChange(event, index + 1)}
               disabled={role === 'Reviewer'}
+              max={100}
+              pattern="[0-9]*"
             />
           </td>
         </tr>
@@ -296,7 +347,37 @@ export const CourseKeyIndicatersSecond = () => {
           <Row>
             <Col xs={12} md={4} lg={6} className="mt-2 text-center">
               <h3 className="text-primary fw-bold">Course Key Indicators</h3>
-              <img src={CLOs} alt="CLOs" className="img-fluid" />
+
+
+              <div style={{ background: 'white' }}>
+                {chartData && (
+                  <div style={{ height: '400px', marginTop: '20px' }}>
+                    <Bar
+                      data={chartData}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            max: 100
+                          }
+                        },
+                        plugins: {
+                          legend: {
+                            labels: {
+                              color: '#000000' // Set legend label color to black
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+
+
             </Col>
 
           </Row>

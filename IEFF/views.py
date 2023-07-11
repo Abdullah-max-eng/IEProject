@@ -1,3 +1,4 @@
+from django.forms.models import model_to_dict
 from .models import Challenges, Courses
 from imaplib import _Authenticator
 import json
@@ -16,6 +17,7 @@ from .models import *
 # Create your views here.
 
 
+@csrf_exempt
 def login_view(request):
     logout(request)
     if request.method == 'POST':
@@ -530,7 +532,6 @@ def grade_rates(request):
 
 def ReviwersFeeBack(request):
     if request.user.is_authenticated:
-        print("Request Received")
         if request.method == 'POST':
             course_id = request.GET.get('Cid')
             dataReceived = json.loads(request.body)
@@ -566,3 +567,24 @@ def ReviwersFeeBack(request):
 def Logout(request):
     logout(request)  # Logout the current user
     return JsonResponse({'success': True})
+
+
+def getAssignments(request):
+    if request.user.is_authenticated:
+        course_id = request.GET.get('Cid')
+        try:
+            course = get_object_or_404(Courses, id=course_id)
+        except Courses.DoesNotExist:
+            return JsonResponse({'error': 'Invalid Course ID'})
+
+        try:
+            clos_of_the_course = CLO.objects.filter(course=course)
+            assignments = AssessmentComponent.objects.filter(
+                clos__in=clos_of_the_course)
+            assignments_list = [
+                {'id': assignment.id, 'assessmentType': assignment.assessmentType} for assignment in assignments]
+            return JsonResponse({'assignments': assignments_list}, safe=False)
+        except CLO.DoesNotExist:
+            return JsonResponse({'error': 'No assignments found for the course'})
+
+    return JsonResponse({'error': 'Invalid request'})

@@ -24,4 +24,6 @@ urlpatterns = [
     path('Logout/', views.Logout, name='Logout'),
     #     path('<path:route>/', views.index, name='ReactApp'),  # New catch-all route
     path('ReviwersFeeBack/', views.ReviwersFeeBack, name='ReviwersFeeBack'),
+    path('getAssignments/', views.getAssignments, name='getAssignments'),
+
 ]

@@ -13,6 +13,13 @@ export const CourseReflectionForm = ({ initialData }) => {
   const [formData, setFormData] = useState({});
   const navigate = useNavigate();
   const [role, setRole] = useState('');
+  const [selectedCourseID, setSelectedCourseID] = useState('');
+  const [assessments, setAssessments] = useState([]);
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
+
+
+
+
 
 
 
@@ -33,9 +40,70 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
+
+  // getting the selected if in the first page
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
+      .then(response => response.json())
+      .then(data => {
+        setSelectedCourseID(data.selected_course_id);
+      })
+      .catch(error => {
+        console.error('Error fetching selected course ID:', error);
+      });
+  }, []);
+
+
+
+
+
+
+
+
+  // Function for getting all the assinments
+  const getAssignments = () => {
+    fetch(`${process.env.REACT_APP_SERVER_IP}/getAssignments/?Cid=${selectedCourseID}`)
+      .then(response => response.json())
+      .then(data => {
+
+        setAssessments(data['assignments'])
+
+      })
+      .catch(error => {
+        console.error('Error fetching assignments:', error);
+      });
+  };
+
+
+
+
+
+  useEffect(() => {
+    if (selectedCourseID) {
+      getAssignments();
+    }
+  }, [selectedCourseID]);
+
+
+
+
+  // useEffect(() => {
+  //   console.log("aaaaaaaaaaaaaaa", assessments)
+  // }, [assessments]);
+
+
   useEffect(() => {
     setFormData(initialData);
   }, [initialData]);
+
+
+
+
+
+  const handleAssessmentSelect = (assessment) => {
+    setSelectedAssessment(assessment);
+  };
+
 
 
 
@@ -104,10 +172,6 @@ export const CourseReflectionForm = ({ initialData }) => {
   };
 
 
-
-
-
-
   const makeEditableForReviewer = (isReviewer, defaultValue) => {
     if (isReviewer) {
       return { contentEditable: 'true', defaultValue };
@@ -145,17 +209,24 @@ export const CourseReflectionForm = ({ initialData }) => {
             </b>
           </Row>
           <Row>
+
+
             <Dropdown>
               <Dropdown.Toggle variant="success" id="dropdown-basic" style={{ background: '#ffffff', color: '#000000' }}>
-                Assessment 1
+                {selectedAssessment ? selectedAssessment.assessmentType : 'Select Assessment'}
               </Dropdown.Toggle>
-
               <Dropdown.Menu>
-                <Dropdown.Item href="#/action-1">Assessment 1</Dropdown.Item>
-                <Dropdown.Item href="#/action-2">Assessment 2</Dropdown.Item>
-                <Dropdown.Item href="#/action-3">Assessment 3</Dropdown.Item>
+                {assessments.map((assessment) => (
+                  <Dropdown.Item key={assessment.id} onClick={() => handleAssessmentSelect(assessment)}>
+                    {assessment.assessmentType}
+                  </Dropdown.Item>
+                ))}
               </Dropdown.Menu>
             </Dropdown>
+
+
+
+
           </Row>
 
           <Row>
