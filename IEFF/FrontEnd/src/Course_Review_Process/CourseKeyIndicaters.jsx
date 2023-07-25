@@ -24,7 +24,7 @@ export const CourseKeyIndicaters = () => {
 
 
   const getAllCourses = (academicYear) => {
-    const url = `http://127.0.0.1:8000/getRoleAndData/?academicYear=${academicYear}`;
+    const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/?academicYear=${academicYear}`;
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
@@ -45,7 +45,7 @@ export const CourseKeyIndicaters = () => {
 
 
   const getSelectedCourseBasedOnTerm = (selectedCourseID) => {
-    const url = `http://127.0.0.1:8000/get_SelectedCourseBasedOnTerm/?courseID=${selectedCourseID}&academicYear=${selectedAcademicYear}`;
+    const url = `${process.env.REACT_APP_SERVER_IP}/get_SelectedCourseBasedOnTerm/?courseID=${selectedCourseID}&academicYear=${selectedAcademicYear}`;
 
     fetch(url)
       .then((response) => response.json())
@@ -86,7 +86,7 @@ export const CourseKeyIndicaters = () => {
 
 
   const getGradesRate = (courseID) => {
-    const url = `http://127.0.0.1:8000/grade_rates?courseID=${courseID}&academicYear=${selectedAcademicYear}`;
+    const url = `${process.env.REACT_APP_SERVER_IP}/grade_rates?courseID=${courseID}&academicYear=${selectedAcademicYear}`;
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
@@ -110,6 +110,9 @@ export const CourseKeyIndicaters = () => {
       const springRates = Object.values(gradeRates.Spring || {}).map(rate => rate || 0);
 
       const ctx = chartRef.current.getContext('2d');
+
+
+
       new Chart(ctx, {
         type: 'bar',
         data: {
@@ -200,6 +203,8 @@ export const CourseKeyIndicaters = () => {
         },
       });
     }, [gradeRates]);
+
+
 
     return (
       <div style={{ margin: '20px', padding: '20px', border: '1px solid #DDDDDD', borderRadius: '8px' }}>

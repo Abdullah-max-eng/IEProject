@@ -8,7 +8,8 @@ import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
 import { Row, Col, Table } from 'react-bootstrap';
 import CLOs from '../CLOs.png';
 import Select from 'react-select';
-
+import { getCookie } from '../assets/getCoookies.js';
+import { Bar } from 'react-chartjs-2';
 
 
 
@@ -22,6 +23,9 @@ export const CourseKeyIndicatersSecond = () => {
   const [formData, setFormData] = useState([]);
   const [saveStatus, setSaveStatus] = useState('');
   const navigate = useNavigate();
+  const [chartData, setChartData] = useState(null);
+
+
 
   const assessmentComponentOptions = [
     { value: 'Assignment', label: 'Assignment' },
@@ -54,7 +58,7 @@ export const CourseKeyIndicatersSecond = () => {
   // To get Role
   useEffect(() => {
     const checkRole = () => {
-      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -72,7 +76,7 @@ export const CourseKeyIndicatersSecond = () => {
 
   // To get the Course ID selected in the first page
   useEffect(() => {
-    fetch('/get_selected_course_id/')
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
@@ -85,20 +89,26 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
+  // To get the Course ID selected in the first page
+  useEffect(() => {
+    console.log(formData)
+  }, [formData]);
+
+
+
+
 
   // To get the existing data
   useEffect(() => {
     if (selectedCourseID !== '') {
-      fetch(`/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
+      fetch(`${process.env.REACT_APP_SERVER_IP}/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
         method: 'GET'
       })
         .then(response => response.json())
         .then(data => {
           setFormData(data);
-
           // Extract existing assessment components
           const existingComponents = data.flatMap(item => item.assignments);
-
           // Create new options array by combining existing and default options
           const updatedOptions = assessmentComponentOptions.map(option => {
             // Check if the existing component already exists in the default options
@@ -111,6 +121,33 @@ export const CourseKeyIndicatersSecond = () => {
 
           // Update the assessment component options state
           setSelectedComponents(updatedOptions);
+          // Prepare data for chart
+          const chartLabels = data.map(item => `CLO ${item.cloIndex}`);
+          const chartMarks = data.map(item => item.marks);
+          const chartWeight = data.map(item => item.weight)
+          setChartData({
+            labels: chartLabels,
+            datasets: [
+              {
+                label: 'Marks',
+                data: chartMarks,
+                backgroundColor: 'blue',
+                borderColor: 'blue',
+                borderWidth: 1
+              },
+              {
+                label: 'Weight',
+                data: chartWeight,
+                backgroundColor: 'orange',
+                borderColor: 'orange',
+                borderWidth: 1
+              }
+            ]
+          });
+
+
+
+
         })
         .catch(error => {
           console.error('Error fetching data:', error);
@@ -124,11 +161,15 @@ export const CourseKeyIndicatersSecond = () => {
 
   // To save data to the database
   const saveDataToDB = () => {
-    console.log(formData);
-    fetch(`/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
+
+    const csrftoken = getCookie('csrftoken');
+
+    fetch(`${process.env.REACT_APP_SERVER_IP}/AddorGetDataSecondKeyIndicators/?Cid=${selectedCourseID}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+
       },
       body: JSON.stringify(formData)
     })
@@ -156,7 +197,7 @@ export const CourseKeyIndicatersSecond = () => {
         return item;
       }
     });
-  
+
     // Create a new object if the CLO doesn't have initial data
     const foundCLO = updatedData.find(item => item.cloIndex === cloIndex);
     if (!foundCLO) {
@@ -167,21 +208,25 @@ export const CourseKeyIndicatersSecond = () => {
         assignments: selectedOptions.map(option => option.value)
       });
     }
-  
+
     setFormData(updatedData);
   };
-  
 
 
 
 
 
-  
+
+
   const handleMarksChange = (event, cloIndex) => {
-    const { value } = event.target;
+    let { value } = event.target;
+    value = value.replace(/\D/g, '');
+    const numericValue = parseInt(value, 10);
+    const limitedValue = isNaN(numericValue) ? 0 : Math.min(numericValue, 100);
+
     const updatedData = formData.map(item => {
       if (item.cloIndex === cloIndex) {
-        return { ...item, marks: value };
+        return { ...item, marks: limitedValue };
       } else {
         return item;
       }
@@ -194,10 +239,16 @@ export const CourseKeyIndicatersSecond = () => {
 
 
   const handleWeightChange = (event, cloIndex) => {
-    const { value } = event.target;
+    let { value } = event.target;
+    // Remove any non-digit characters from the entered value
+    value = value.replace(/\D/g, '');
+    // Convert the value to a number
+    const numericValue = parseInt(value, 10);
+
+    const limitedValue = isNaN(numericValue) ? 0 : Math.min(numericValue, 100);
     const updatedData = formData.map(item => {
       if (item.cloIndex === cloIndex) {
-        return { ...item, weight: value };
+        return { ...item, weight: limitedValue };
       } else {
         return item;
       }
@@ -217,7 +268,7 @@ export const CourseKeyIndicatersSecond = () => {
       weight: '',
       assignments: []
     }));
-    
+
 
     const combinedData = [...formData, ...initialFormData];
 
@@ -237,9 +288,14 @@ export const CourseKeyIndicatersSecond = () => {
         assignments.includes(option.value)
       );
 
+
+
       return (
         <tr key={`clo-${index + 1}`}>
           <td>CLO {index + 1}</td>
+
+
+
           <td className="select-cell">
             <Select
               className="select-input"
@@ -258,6 +314,11 @@ export const CourseKeyIndicatersSecond = () => {
               </div>
             )}
           </td>
+
+
+
+
+
           <td>
             <input
               type="number"
@@ -265,6 +326,8 @@ export const CourseKeyIndicatersSecond = () => {
               value={marks}
               onChange={event => handleMarksChange(event, index + 1)}
               disabled={role === 'Reviewer'}
+              max={100}
+              pattern="[0-9]*"
             />
           </td>
           <td>
@@ -274,6 +337,8 @@ export const CourseKeyIndicatersSecond = () => {
               value={weight}
               onChange={event => handleWeightChange(event, index + 1)}
               disabled={role === 'Reviewer'}
+              max={100}
+              pattern="[0-9]*"
             />
           </td>
         </tr>
@@ -283,16 +348,48 @@ export const CourseKeyIndicatersSecond = () => {
 
 
 
-  
+
   return (
     <div>
       <NavBarTopProcess step={2} />
       <Container>
         <Box sx={{ mt: 5 }}>
           <Row>
-            <Col xs={12} md={4} lg={6} className="mt-2 text-center">
+
+
+            <Col xs={12} md={4} lg={6} className="mt-2 text-center" style={{ marginLeft: '300px', }}>
               <h3 className="text-primary fw-bold">Course Key Indicators</h3>
-              <img src={CLOs} alt="CLOs" className="img-fluid" />
+
+
+              <div style={{ background: 'white' }}>
+                {chartData && (
+                  <div style={{ height: '400px', marginTop: '20px', marginLeft: '100px' }}>
+                    <Bar
+                      data={chartData}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            max: 100
+                          }
+                        },
+                        plugins: {
+                          legend: {
+                            labels: {
+                              color: '#000000' // Set legend label color to black
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+
+
             </Col>
 
           </Row>
@@ -317,7 +414,7 @@ export const CourseKeyIndicatersSecond = () => {
 
             <Col xs={12} md={4} lg={3} className="mt-2">
               <Link
-                to="/CourseKeyIndicaters"
+                to="/CourseFolder"
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <Button
@@ -330,6 +427,9 @@ export const CourseKeyIndicatersSecond = () => {
                 </Button>
               </Link>
             </Col>
+
+
+
             <Col xs={12} md={4} lg={3} className="mt-2">
               <Link
                 to="/Weektoweekactivity"
@@ -345,6 +445,8 @@ export const CourseKeyIndicatersSecond = () => {
                 </Button>
               </Link>
             </Col>
+
+
             <Col xs={12} md={4} lg={3} className="mt-2">
               {role !== 'Reviewer' && (
                 <Button
@@ -359,6 +461,8 @@ export const CourseKeyIndicatersSecond = () => {
               )}
               {saveStatus && <div className="mt-2 text-success">{saveStatus}</div>}
             </Col>
+
+
 
           </Row>
         </Box>

@@ -6,7 +6,7 @@ import Container from '@mui/material/Container';
 import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
 import { Row, Col, Table } from 'react-bootstrap';
 import './CourseImprovementPlan.css';
-
+import { getCookie } from '../assets/getCoookies.js';
 export const CourseImprovementPlan = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
@@ -27,7 +27,7 @@ export const CourseImprovementPlan = () => {
   // Get the current data
   useEffect(() => {
     if (selectedCourseID !== '') {
-      fetch(`/saveimprovementplan/?selectedCourseID=${selectedCourseID}`, {
+      fetch(`${process.env.REACT_APP_SERVER_IP}/saveimprovementplan/?selectedCourseID=${selectedCourseID}`, {
         method: 'GET',
       })
         .then(response => response.json())
@@ -43,7 +43,7 @@ export const CourseImprovementPlan = () => {
   }, [selectedCourseID]);
 
   useEffect(() => {
-    fetch('/get_selected_course_id/')
+    fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
       .then(data => {
         setSelectedCourseID(data.selected_course_id);
@@ -55,7 +55,7 @@ export const CourseImprovementPlan = () => {
 
   useEffect(() => {
     const checkRole = () => {
-      const url = 'http://127.0.0.1:8000/getRoleAndData/';
+      const url = `${process.env.REACT_APP_SERVER_IP}/getRoleAndData/`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -66,6 +66,8 @@ export const CourseImprovementPlan = () => {
 
     checkRole();
   }, []);
+
+
 
   const handleInputChange = (id, column, value) => {
     setImprovementPlanData(prevData =>
@@ -78,24 +80,33 @@ export const CourseImprovementPlan = () => {
     );
   };
 
+
+
+
+
+
+
   const sendDataToServer = async () => {
     // console.log("Selected Course ID===========", selectedCourseID)
     // console.log(improvementPlanData);
+    const csrftoken = getCookie('csrftoken');
 
     const requestOptions = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+
       },
       body: JSON.stringify({ improvementPlanData, selectedCourseID })
     };
 
     // console.log("Send data from Front end-------", requestOptions)
 
-    fetch('/saveimprovementplan/', requestOptions)
+    fetch(`${process.env.REACT_APP_SERVER_IP}/saveimprovementplan/`, requestOptions)
       .then(response => response.json())
       .then(data => {
-        console.log('Data received:', data);
+        // console.log('Data received:', data);
       })
       .catch(error => {
         console.error('Error sending data:', error);

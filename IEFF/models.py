@@ -76,7 +76,7 @@ class Courses(models.Model):
         SystemUsers, on_delete=models.CASCADE, related_name='courses_taught')
 
     def __str__(self):
-        return f" ID:{self.id} --- code:{self.courseCode} --- Title:{self.courseTitle} --- Year: {self.academicYear} --- Term: {self.term}"
+        return f" ID:{self.id} --- code:{self.courseCode} --- Title:{self.courseTitle} --- Year: {self.academicYear} --- Term: {self.term} --- Professor: {self.teacher}"
 
 
 class CLO(models.Model):
@@ -221,3 +221,6 @@ class GradesCard(models.Model):
 
     def get_total_grades(self):
         return sum([self.Numberof_A, self.Numberof_B, self.Numberof_C, self.Numberof_D, self.Numberof_F, self.Numberof_W])
+
+    def get_total_students(self):
+        return sum([self.Numberof_A, self.Numberof_B, self.Numberof_C, self.Numberof_D, self.Numberof_F])

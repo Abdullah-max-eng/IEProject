@@ -10,11 +10,22 @@ import Alert from 'react-bootstrap/Alert';
 import '../style.css';
 import reviewCritria from '../reviewCritria.png';
 import arrow from '../arrow.svg';
+import { getCookie } from '../assets/getCoookies.js';
+
 
 export const Instructions = () => {
+
+
+
+
+
   const handleLogout = () => {
+    const csrftoken = getCookie('csrftoken');
     fetch('/Logout/', {
       method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
       credentials: 'include'  // Include this line if you need to send cookies along with the request
     })
       .then(response => {
@@ -38,13 +49,22 @@ export const Instructions = () => {
         <NavBarTopProcess />
         <Container fixed>
           <div className="d-flex align-items-center justify-content-center">
+
+
             <Col>
+
+
               <Row className="fs-4 fw-bold d-flex justify-content-center">
                 Instruction
               </Row>
+
+
+
+
               <Row>
+
                 <Alert
-                  style={{ background: 'rgba(255,255,255,0.5)' }}
+                  style={{ background: 'rgba(255,255,255)' }}
                   className="fw-bold"
                   variant="dark"
                 >
@@ -71,8 +91,14 @@ export const Instructions = () => {
                     The list below shows the steps to provide the necessary information and feedback:
                   </p>
                 </Alert>
+
+
               </Row>
-              <Row>
+
+
+
+
+              <Row style={{ background: 'rgba(255,255,255)' }}>
                 <Col md="auto">
                   <Row className="p-1">
                     <Button
@@ -151,29 +177,7 @@ export const Instructions = () => {
                     </Button>
                   </Row>
                 </Col>
-                <Col md="auto">
-                  <img src={arrow} alt="logo" style={{ marginTop: '35px' }} />
-                </Col>
-                <Col>
-                  <Alert
-                    style={{ background: 'rgba(255,255,255,0.5)' }}
-                    variant="dark"
-                  >
-                    <p className="oneandhalf">
-                      Please upload this Excel file to your course folder
-                    </p>
-                    <p className="oneandhalf">
-                      or Teacher Portfolio in the shared Google drive.
-                    </p>
-                    <b className="oneandhalf">
-                      Please add the link to your course folder here:
-                    </b>
-                    <p className="oneandhalf">
-                      ---&gt;{' '}
-                      <a href="http://google.com">Shared Google Drive</a>
-                    </p>
-                  </Alert>
-                </Col>
+
                 <Col>
                   <img
                     src={reviewCritria}
@@ -182,8 +186,12 @@ export const Instructions = () => {
                   />
                 </Col>
               </Row>
-              <Row className="justify-content-end">
 
+
+
+
+
+              <Row className="justify-content-end">
                 <Button
                   style={{
                     maxWidth: '100px',
@@ -210,6 +218,11 @@ export const Instructions = () => {
                   Logout
                 </Button>
               </Row>
+
+
+
+
+
             </Col>
           </div>
         </Container>

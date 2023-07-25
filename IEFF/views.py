@@ -1,3 +1,4 @@
+from django.forms.models import model_to_dict
 from .models import Challenges, Courses
 from imaplib import _Authenticator
 import json
@@ -80,6 +81,7 @@ def getRoleAndData(request):
 def get_SelectedCourseBasedOnTerm(request):
     if request.user.is_authenticated:
         try:
+            teacher = request.user.SystemUser
             selected_course_ID = request.GET.get('courseID')
             academic_year = request.GET.get('academicYear')
             start_year = int(academic_year.split('-')[0]) - 1
@@ -88,44 +90,102 @@ def get_SelectedCourseBasedOnTerm(request):
 
             try:
                 selected_course = Courses.objects.get(
-                    pk=selected_course_ID, academicYear=academic_year)
+                    pk=selected_course_ID, academicYear=academic_year, teacher=teacher)
                 selected_course_code = selected_course.courseCode
                 # selected_course_Title = selected_course.courseTitle
             except ObjectDoesNotExist:
                 return JsonResponse({'error': 'Selected course does not exist.'})
 
-            # Store the selected course ID in the session
+            # Store the selected course ID in the session (------Very Importan-----)
             session = SessionStore(request.session.session_key)
             session['selected_course_id'] = selected_course_ID
             session.save()
 
             course_fall_previous_year = Courses.objects.filter(
-                academicYear=one_year_before_academic_year, courseCode=selected_course_code, term='Fall').first()
+                academicYear=one_year_before_academic_year, courseCode=selected_course_code, term='Fall', teacher=teacher).first()
             course_fall_selected_year = Courses.objects.filter(
-                academicYear=academic_year, courseCode=selected_course_code, term='Fall').first()
+                academicYear=academic_year, courseCode=selected_course_code, term='Fall', teacher=teacher).first()
             course_spring_selected_year = Courses.objects.filter(
-                academicYear=academic_year, courseCode=selected_course_code, term='Spring').first()
+                academicYear=academic_year, courseCode=selected_course_code, term='Spring', teacher=teacher).first()
+
+            # print(course_fall_previous_year, course_fall_selected_year,
+            #       course_spring_selected_year)
+
+            CFPY_Grade_Card = GradesCard.objects.filter(
+                course=course_fall_previous_year).first()
+            # print("Card 11111", CFPY_Grade_Card)
+            CFSY_Grade_Card = GradesCard.objects.filter(
+                course=course_fall_selected_year).first()
+            # print("Card 44444", CFSY_Grade_Card)
+            CSSY_Grade_Card = GradesCard.objects.filter(
+                course=course_spring_selected_year).first()
+            # print("Card 3333", CSSY_Grade_Card)
+
+            CFPY_FailRate = CFPY_Grade_Card.get_grade_rate(
+                "F") if CFPY_Grade_Card else None
+            CFSY_FailRate = CFSY_Grade_Card.get_grade_rate(
+                "F") if CFSY_Grade_Card else None
+            CSSY_FailRate = CSSY_Grade_Card.get_grade_rate(
+                "F") if CSSY_Grade_Card else None
+
+            if CFPY_Grade_Card:
+                try:
+                    CFPY_NumberOfStudents = CFPY_Grade_Card.get_total_students()
+                    CFPY_WithDrawRates = CFPY_Grade_Card.get_grade_rate("W")
+                    # print("Number of students in CFPY_Grade_Card:",
+                    #       CFPY_NumberOfStudents)
+                    # print("Withdraw Rate in CFPY_Grade_Card:", CFPY_WithDrawRates)
+                except Exception as e:
+                    print("Error occurred while processing CFPY_Grade_Card:", e)
+            else:
+                # print("CFPY_Grade_Card does not exist")
+                pass
+
+            if CFSY_Grade_Card:
+                try:
+                    CFSY_NumberOfStudents = CFSY_Grade_Card.get_total_students()
+                    CFSY_WithDrawRates = CFSY_Grade_Card.get_grade_rate("W")
+                    # print("Number of students in CFSY_Grade_Card:",
+                    #       CFSY_NumberOfStudents)
+                    # print("Withdraw Rate in CFSY_Grade_Card:", CFSY_WithDrawRates)
+                except Exception as e:
+                    print("Error occurred while processing CFSY_Grade_Card:", e)
+            else:
+                # print("CFSY_Grade_Card does not exist")
+                pass
+
+            if CSSY_Grade_Card:
+                try:
+                    CSSY_NumberOfStudents = CSSY_Grade_Card.get_total_students()
+                    CSSY_WithDrawRates = CSSY_Grade_Card.get_grade_rate("W")
+                    # print("Number of students in CSSY_Grade_Card:",
+                    #       CSSY_NumberOfStudents)
+                    # print("Withdraw Rate in CSSY_Grade_Card:", CSSY_WithDrawRates)
+                except Exception as e:
+                    print("Error occurred while processing CSSY_Grade_Card:", e)
+            else:
+                # print("CSSY_Grade_Card does not exist")
+                pass
 
             course_data = {
                 'courseTitle': selected_course.courseTitle,
                 'professorName': selected_course.teacher.user.username,
-                'students_fall_prev_year': course_fall_previous_year.numberOfStudent if course_fall_previous_year else '',
-                'fail_rate_fall_prev_year': str(course_fall_previous_year.failRate) if course_fall_previous_year else '',
-                'drop_withdraw_fall_prev_year': course_fall_previous_year.dropOrWithdraw if course_fall_previous_year else '',
+                'students_fall_prev_year': CFPY_NumberOfStudents if course_fall_previous_year else '',
+                'fail_rate_fall_prev_year': str(CFPY_FailRate) + "%" if course_fall_previous_year else '',
+                'drop_withdraw_fall_prev_year': str(CFPY_WithDrawRates) + "%" if course_fall_previous_year else '',
                 'satisfaction_score_fall_prev_year': str(course_fall_previous_year.studentSatisfactionScore) if course_fall_previous_year else '',
                 'teaching_quality_fall_prev_year': str(course_fall_previous_year.teachingQualityScore) if course_fall_previous_year else '',
-                'students_spring_selected_year': course_spring_selected_year.numberOfStudent if course_spring_selected_year else '',
-                'fail_rate_spring_selected_year': str(course_spring_selected_year.failRate) if course_spring_selected_year else '',
-                'drop_withdraw_spring_selected_year': course_spring_selected_year.dropOrWithdraw if course_spring_selected_year else '',
+                'students_spring_selected_year': CSSY_NumberOfStudents if course_spring_selected_year else '',
+                'fail_rate_spring_selected_year': str(CSSY_FailRate) + "%" if course_spring_selected_year else '',
+                'drop_withdraw_spring_selected_year': str(CSSY_WithDrawRates) + "%" if course_spring_selected_year else '',
                 'satisfaction_score_spring_selected_year': str(course_spring_selected_year.studentSatisfactionScore) if course_spring_selected_year else '',
                 'teaching_quality_spring_selected_year': str(course_spring_selected_year.teachingQualityScore) if course_spring_selected_year else '',
-                'students_fall_selected_year': course_fall_selected_year.numberOfStudent if course_fall_selected_year else '',
-                'fail_rate_fall_selected_year': str(course_fall_selected_year.failRate) if course_fall_selected_year else '',
-                'drop_withdraw_fall_selected_year': course_fall_selected_year.dropOrWithdraw if course_fall_selected_year else '',
+                'students_fall_selected_year': CFSY_NumberOfStudents if course_fall_selected_year else '',
+                'fail_rate_fall_selected_year': str(CFSY_FailRate) + "%" if course_fall_selected_year else '',
+                'drop_withdraw_fall_selected_year': str(CFSY_WithDrawRates) + "%" if course_fall_selected_year else '',
                 'satisfaction_score_fall_selected_year': str(course_fall_selected_year.studentSatisfactionScore) if course_fall_selected_year else '',
                 'teaching_quality_fall_selected_year': str(course_fall_selected_year.teachingQualityScore) if course_fall_selected_year else ''
             }
-            # print("Dataaa++++++++++++++++++++++", course_data)
 
             return JsonResponse({'coursesBasedOnTerm_data': course_data})
         except ValueError:
@@ -145,7 +205,6 @@ def get_selected_course_id(request):
         return JsonResponse({'error': 'User not authenticated'})
 
 
-@csrf_exempt
 def AddOrGetDataSecondKeyIndicators(request):
     selected_course_ID = request.GET.get('Cid')
 
@@ -218,7 +277,6 @@ def index(request, route=''):
     return render(request, 'index.html')
 
 
-@csrf_exempt
 def AddorGetDataWeekToWeek(request):
     selected_course_ID = request.GET.get('Cid')
     if request.user.is_authenticated:
@@ -264,7 +322,6 @@ def AddorGetDataWeekToWeek(request):
     return HttpResponseBadRequest('Invalid request')
 
 
-@csrf_exempt
 def saveimprovementplan(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
@@ -334,7 +391,6 @@ def saveimprovementplan(request):
         return JsonResponse({'message': 'User not authenticated'}, status=401)
 
 
-@csrf_exempt
 def SaveLink(request):
     if request.user.is_authenticated:
 
@@ -360,7 +416,7 @@ def SaveLink(request):
 
         elif request.method == 'GET':
             course_id = request.GET.get('courseId')
-            print("Course id = ", course_id)
+            # print("Course id = ", course_id)
             if course_id:
                 course = get_object_or_404(
                     Courses, id=course_id)
@@ -374,9 +430,9 @@ def SaveLink(request):
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
 
-@csrf_exempt
 def ChallengesAndConcerns(request):
     if request.user.is_authenticated:
+
         if request.method == 'POST':
             course_id = request.GET.get('Cid')
             try:
@@ -397,8 +453,8 @@ def ChallengesAndConcerns(request):
                         challenge.save()
             except json.JSONDecodeError as e:
                 return HttpResponseBadRequest("Invalid JSON data")
-            print("Data saved successfully")
-            return HttpResponse("Data saved successfully")
+
+            return JsonResponse({'success': 'Data saved successfully'})
 
         elif request.method == "GET":
             course_id = request.GET.get('courseId')
@@ -432,17 +488,20 @@ def grade_rates(request):
     # if request.user.is_authenticated:
     courseID = request.GET.get('courseID')
     academicYear = request.GET.get('academicYear')
+    teacher = request.user.SystemUser
+
+    # print("Teacher,", teacher)
     try:
-        course = get_object_or_404(Courses, pk=courseID)
+        course = get_object_or_404(Courses, pk=courseID, teacher=teacher)
         courseCode = course.courseCode
     except Courses.DoesNotExist:
         return HttpResponseBadRequest("Course not found")
 
     spring_term_courses = Courses.objects.filter(
-        term="Spring", academicYear=academicYear, courseCode=courseCode
+        term="Spring", academicYear=academicYear, courseCode=courseCode, teacher=teacher
     )
     fall_term_courses = Courses.objects.filter(
-        term="Fall", academicYear=academicYear, courseCode=courseCode
+        term="Fall", academicYear=academicYear, courseCode=courseCode, teacher=teacher
     )
     # print(spring_term_courses, fall_term_courses)
 
@@ -471,7 +530,83 @@ def grade_rates(request):
     # return HttpResponseBadRequest("Invalid request")
 
 
-@csrf_exempt
+def ReviwersFeeBack(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            course_id = request.GET.get('Cid')
+            dataReceived = json.loads(request.body)
+            try:
+                course = get_object_or_404(Courses, id=course_id)
+            except Courses.DoesNotExist:
+                return HttpResponseBadRequest("Invalid Course ID")
+
+            feedback, created = ReviewersFeedback.objects.get_or_create(
+                course=course)
+            feedback.cirteriaStatus = dataReceived['criteria']
+            feedback.Rationale = dataReceived['rationale']
+            feedback.otherComments = dataReceived['otherComments']
+            feedback.save()
+
+            return HttpResponse("Feedback saved successfully")
+
+        if request.method == 'GET':
+            course_id = request.GET.get('Cid')
+            try:
+                course = get_object_or_404(Courses, id=course_id)
+                feedback = get_object_or_404(ReviewersFeedback, course=course)
+                data = {
+                    'criteria': feedback.cirteriaStatus,
+                    'rationale': feedback.Rationale,
+                    'otherComments': feedback.otherComments
+                }
+                return JsonResponse(data)
+            except (Courses.DoesNotExist, ReviewersFeedback.DoesNotExist):
+                return HttpResponseBadRequest("Invalid Course ID")
+
+
 def Logout(request):
     logout(request)  # Logout the current user
     return JsonResponse({'success': True})
+
+
+def getAssignments(request):
+    if request.user.is_authenticated:
+        course_id = request.GET.get('Cid')
+        try:
+            course = get_object_or_404(Courses, id=course_id)
+        except Courses.DoesNotExist:
+            return JsonResponse({'error': 'Invalid Course ID'})
+
+        try:
+            clos_of_the_course = CLO.objects.filter(course=course)
+            assessment_components_by_clo = {}
+
+            for clo in clos_of_the_course:
+                assessment_components = clo.assessment_components.all()
+                assessment_components_list = [
+                    {'id': component.id, 'assessmentType': component.assessmentType} for component in assessment_components
+                ]
+                assessment_components_by_clo[clo.index] = assessment_components_list
+
+            if assessment_components_by_clo:
+                return JsonResponse({'assessmentComponents': assessment_components_by_clo})
+            else:
+                return JsonResponse({'error': 'No assessment components found for the course'}, status=404)
+        except CLO.DoesNotExist:
+            return JsonResponse({'error': 'No CLOs found for the course'})
+
+    return JsonResponse({'error': 'Invalid request'})
+
+
+def SaveOrGetCloAndCLO(request):
+    if request.user.is_authenticated:
+        course_id = request.GET.get('Cid')
+        if request.method == 'POST':
+            bodyData = dataReceived = json.loads(request.body)
+            print("------------------ POST", course_id, bodyData)
+            return HttpResponse({})
+        elif request.method == 'GET':
+            print("------------------ GET", course_id)
+            return HttpResponse({})
+
+    return JsonResponse({'error': 'Invalid request'})
