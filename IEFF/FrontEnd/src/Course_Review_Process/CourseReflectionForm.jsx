@@ -8,15 +8,45 @@ import { NavBarTopProcess } from '../NavBarTopProcess.jsx';
 import { Row, Table } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import './CourseReflectionForm.css';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import { getCookie } from '../assets/getCoookies.js';
+
+
+
+
+
 
 export const CourseReflectionForm = ({ initialData }) => {
   const [formData, setFormData] = useState({});
   const navigate = useNavigate();
   const [role, setRole] = useState('');
   const [selectedCourseID, setSelectedCourseID] = useState('');
-  const [assessments, setAssessments] = useState([]);
-  const [selectedAssessment, setSelectedAssessment] = useState(null);
-
+  const [assessments, setAssessments] = useState({});
+  const [selectedAssessment, setSelectedAssessment] = useState({});
+  const assessmentComponentOptions = [
+    { value: 'Assignment', label: 'Assignment' },
+    { value: 'Quiz', label: 'Quiz' },
+    { value: 'Presentation', label: 'Presentation' },
+    { value: 'Midterm Exam', label: 'Midterm Exam' },
+    { value: 'Final Exam', label: 'Final Exam' },
+    { value: 'Project', label: 'Project' },
+    { value: 'Lab Report', label: 'Lab Report' },
+    { value: 'Essay', label: 'Essay' },
+    { value: 'Group Work', label: 'Group Work' },
+    { value: 'Research Paper', label: 'Research Paper' },
+    { value: 'Online Discussion', label: 'Online Discussion' },
+    { value: 'Peer Review', label: 'Peer Review' },
+    { value: 'Portfolio', label: 'Portfolio' },
+    { value: 'Case Study', label: 'Case Study' },
+    { value: 'Oral Examination', label: 'Oral Examination' },
+    { value: 'Practical Exam', label: 'Practical Exam' },
+    { value: 'Simulation', label: 'Simulation' },
+    { value: 'Field Work', label: 'Field Work' },
+    { value: 'Attendance', label: 'Attendance' },
+    { value: 'Participation', label: 'Participation' },
+    // Add other possible assessment components here
+  ];
 
 
 
@@ -41,7 +71,6 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
-  // getting the selected if in the first page
   useEffect(() => {
     fetch(`${process.env.REACT_APP_SERVER_IP}/get_selected_course_id/`)
       .then(response => response.json())
@@ -56,24 +85,16 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
-
-
-
-
-  // Function for getting all the assinments
   const getAssignments = () => {
     fetch(`${process.env.REACT_APP_SERVER_IP}/getAssignments/?Cid=${selectedCourseID}`)
       .then(response => response.json())
       .then(data => {
-
-        setAssessments(data['assignments'])
-
+        setAssessments(data.assessmentComponents);
       })
       .catch(error => {
         console.error('Error fetching assignments:', error);
       });
   };
-
 
 
 
@@ -87,10 +108,6 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
-  // useEffect(() => {
-  //   console.log("aaaaaaaaaaaaaaa", assessments)
-  // }, [assessments]);
-
 
   useEffect(() => {
     setFormData(initialData);
@@ -100,8 +117,12 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
-  const handleAssessmentSelect = (assessment) => {
-    setSelectedAssessment(assessment);
+  const handleAssessmentSelect = (selected, index) => {
+    setSelectedAssessment(prevSelected => {
+      const updatedSelected = { ...prevSelected };
+      updatedSelected[index] = selected;
+      return updatedSelected;
+    });
   };
 
 
@@ -109,47 +130,43 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
   const handleSaveAndNext = () => {
-    const sloRows = Array.from(document.querySelectorAll('#sloTable tbody tr'));
-    const cloRows = Array.from(document.querySelectorAll('#cloTable tbody tr'));
-    const sloData = sloRows.map((row, index) => {
-      const cells = Array.from(row.querySelectorAll('td'));
-      return {
-        slo: cells[0].textContent.trim(),
-        achievementStatus: document.querySelector(`input[name="slo-criteria-${index}"]:checked`)?.value || '',
-        assessment: cells[2].textContent.trim(),
-        facultyComments: cells[3].textContent.trim(),
-        reviewerComments: cells[4].textContent.trim(),
-      };
-    });
+    // Data for SLOs
+    const sloData = [...Array(10)].map((_, index) => ({
+      slo: index + 1,
+      achievementStatus: document.querySelector(`input[name="slo-criteria-${index}"]:checked`)?.value || '',
+      assessments: selectedAssessment[index] || [],
+      facultyComments: document.querySelector(`#faculty-comments-${index}`)?.value || '',
+      reviewerComments: document.querySelector(`#reviewer-comments-${index}`)?.value || '',
+    }));
 
-    const cloData = cloRows.map((row, index) => {
-      const cells = Array.from(row.querySelectorAll('td'));
-      return {
-        clo: cells[0].textContent.trim(),
-        achievementStatus: document.querySelector(`input[name="clo-criteria-${index}"]:checked`)?.value || '',
-        assessment: cells[2].textContent.trim(),
-        facultyComments: cells[3].textContent.trim(),
-        reviewerComments: cells[4].textContent.trim(),
-      };
-    });
+    // Data for CLOs
+    const cloData = [...Array(10)].map((_, index) => ({
+      clo: index + 1,
+      achievementStatus: document.querySelector(`input[name="clo-criteria-${index}"]:checked`)?.value || '',
+      facultyComments: document.querySelector(`#clo-faculty-comments-${index}`)?.value || '',
+      reviewerComments: document.querySelector(`#clo-reviewer-comments-${index}`)?.value || '',
+    }));
 
 
+    const dataToBeSent = {
+      SLOD: sloData,
+      CLOD: cloData
+    }
 
 
-    const updatedData = {
-      sloData,
-      cloData,
-    };
+    const csrftoken = getCookie('csrftoken');
+    fetch(`${process.env.REACT_APP_SERVER_IP}/SaveOrGetCloAndCLO/?Cid=${selectedCourseID}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      },
+      body: JSON.stringify(dataToBeSent)
+    })
 
-
-
-    setFormData(updatedData);
-    console.log(JSON.stringify(updatedData));
     navigate('/CourseImprovementPlan');
-    // TODO: Send updatedData to Django server using an HTTP request
+
   };
-
-
 
 
 
@@ -160,16 +177,13 @@ export const CourseReflectionForm = ({ initialData }) => {
   const disableReviewerComments = isProfessor ? { disabled: true, title: 'You cannot edit this field' } : {};
   const disableNonEditableFields = isReviewer ? { disabled: true, title: 'You cannot edit this field' } : {};
 
-
-
-
-
   const makeEditableForProfessor = (isProfessor, defaultValue) => {
     if (isProfessor) {
       return { contentEditable: 'true', defaultValue };
     }
     return { contentEditable: 'false', value: defaultValue };
   };
+
 
 
   const makeEditableForReviewer = (isReviewer, defaultValue) => {
@@ -182,52 +196,29 @@ export const CourseReflectionForm = ({ initialData }) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <div>
       <Box sx={{ height: '100vh' }}>
         <NavBarTopProcess />
         <Container fixed>
-          <Row className="fs-4 fw-bold d-flex justify-content-center">Course Reflection Form</Row>
+
+
+          <Row className="fs-4 fw-bold d-flex justify-content-center">
+            Course Reflection Form
+          </Row>
+
+
+
+
           <Row>
             <b className="oneandhalf oneandhalfmargin">
               Please refer to your course syllabus to fill the Student Learning Outcomes (SLOs) and Course Learning
               Outcomes (CLOs) in these tables:
             </b>
           </Row>
-          <Row>
-
-
-            <Dropdown>
-              <Dropdown.Toggle variant="success" id="dropdown-basic" style={{ background: '#ffffff', color: '#000000' }}>
-                {selectedAssessment ? selectedAssessment.assessmentType : 'Select Assessment'}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {assessments.map((assessment) => (
-                  <Dropdown.Item key={assessment.id} onClick={() => handleAssessmentSelect(assessment)}>
-                    {assessment.assessmentType}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
 
 
 
-
-          </Row>
 
           <Row>
             <Table id="sloTable" style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
@@ -253,9 +244,13 @@ export const CourseReflectionForm = ({ initialData }) => {
               <tbody>
                 {[...Array(10)].map((_, index) => (
                   <tr key={index}>
+
+
                     <td>
                       <b>SLO{index + 1}</b>
                     </td>
+
+
                     <td>
                       <form className="oneandhalf">
                         <input
@@ -287,14 +282,63 @@ export const CourseReflectionForm = ({ initialData }) => {
                         <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
                       </form>
                     </td>
-                    <td {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.assessment)} {...disableField}></td>
-                    <td {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.facultyComments)} {...disableNonEditableFields}></td>
-                    <td {...makeEditableForReviewer(isReviewer, formData?.sloData?.[index]?.reviewerComments)} {...disableReviewerComments}></td>
+
+
+
+                    <td>
+                      <Select
+                        multiple
+                        value={selectedAssessment[index] || []}
+                        onChange={(e) => handleAssessmentSelect(e.target.value, index)}
+                        disabled={isReviewer}
+                      >
+                        <MenuItem value="">
+                          <em>Select Assessment</em>
+                        </MenuItem>
+                        {assessmentComponentOptions.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </td>
+
+
+
+                    <td>
+                      <textarea
+                        id={`faculty-comments-${index}`} // Add the id attribute here
+                        className="form-control"
+                        rows="1"
+                        {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.facultyComments)}
+                        {...disableNonEditableFields}
+                      />
+                    </td>
+
+
+
+
+                    <td>
+                      <textarea
+                        id={`reviewer-comments-${index}`} // Add the id attribute here
+                        className="form-control"
+                        rows="1"
+                        {...makeEditableForReviewer(isReviewer, formData?.sloData?.[index]?.reviewerComments)}
+                        {...disableReviewerComments}
+                      />
+                    </td>
+
+
+
+
                   </tr>
                 ))}
               </tbody>
             </Table>
           </Row>
+
+
+
 
           <Row>
             <Table id="cloTable" style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
@@ -320,9 +364,13 @@ export const CourseReflectionForm = ({ initialData }) => {
               <tbody>
                 {[...Array(10)].map((_, index) => (
                   <tr key={index}>
+
+
                     <td>
                       <b>CLO{index + 1}</b>
                     </td>
+
+
                     <td>
                       <form className="oneandhalf">
                         <input
@@ -354,14 +402,52 @@ export const CourseReflectionForm = ({ initialData }) => {
                         <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
                       </form>
                     </td>
-                    <td {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.assessment)} {...disableField}></td>
-                    <td {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.facultyComments)} {...disableNonEditableFields}></td>
-                    <td {...makeEditableForReviewer(isReviewer, formData?.cloData?.[index]?.reviewerComments)} {...disableReviewerComments}></td>
+
+
+
+                    <td>
+                      {assessments[index + 1] && assessments[index + 1].map(assessment => (
+                        <div key={assessment.id}>{assessment.assessmentType}</div>
+                      ))}
+                    </td>
+
+
+
+                    <td>
+                      <textarea
+                        id={`clo-faculty-comments-${index}`} // Add the id attribute here
+                        className="form-control"
+                        rows="1"
+                        {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.facultyComments)}
+                        {...disableNonEditableFields}
+                      />
+                    </td>
+
+
+
+
+                    <td>
+                      <textarea
+                        id={`clo-reviewer-comments-${index}`} // Add the id attribute here
+                        className="form-control"
+                        rows="1"
+                        {...makeEditableForReviewer(isReviewer, formData?.cloData?.[index]?.reviewerComments)}
+                        {...disableReviewerComments}
+                      />
+                    </td>
+
+
+
                   </tr>
                 ))}
               </tbody>
             </Table>
           </Row>
+
+
+
+
+
 
           <Row>
             <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
@@ -371,8 +457,18 @@ export const CourseReflectionForm = ({ initialData }) => {
               Back
             </Button>
           </Row>
+
+
+
+
+
+
         </Container>
       </Box>
     </div>
   );
+
+
+
+
 };

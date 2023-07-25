@@ -288,9 +288,14 @@ export const CourseKeyIndicatersSecond = () => {
         assignments.includes(option.value)
       );
 
+
+
       return (
         <tr key={`clo-${index + 1}`}>
           <td>CLO {index + 1}</td>
+
+
+
           <td className="select-cell">
             <Select
               className="select-input"
@@ -309,6 +314,11 @@ export const CourseKeyIndicatersSecond = () => {
               </div>
             )}
           </td>
+
+
+
+
+
           <td>
             <input
               type="number"
@@ -345,13 +355,15 @@ export const CourseKeyIndicatersSecond = () => {
       <Container>
         <Box sx={{ mt: 5 }}>
           <Row>
-            <Col xs={12} md={4} lg={6} className="mt-2 text-center">
+
+
+            <Col xs={12} md={4} lg={6} className="mt-2 text-center" style={{ marginLeft: '300px', }}>
               <h3 className="text-primary fw-bold">Course Key Indicators</h3>
 
 
               <div style={{ background: 'white' }}>
                 {chartData && (
-                  <div style={{ height: '400px', marginTop: '20px' }}>
+                  <div style={{ height: '400px', marginTop: '20px', marginLeft: '100px' }}>
                     <Bar
                       data={chartData}
                       options={{
@@ -415,6 +427,9 @@ export const CourseKeyIndicatersSecond = () => {
                 </Button>
               </Link>
             </Col>
+
+
+
             <Col xs={12} md={4} lg={3} className="mt-2">
               <Link
                 to="/Weektoweekactivity"
@@ -430,6 +445,8 @@ export const CourseKeyIndicatersSecond = () => {
                 </Button>
               </Link>
             </Col>
+
+
             <Col xs={12} md={4} lg={3} className="mt-2">
               {role !== 'Reviewer' && (
                 <Button
@@ -444,6 +461,8 @@ export const CourseKeyIndicatersSecond = () => {
               )}
               {saveStatus && <div className="mt-2 text-success">{saveStatus}</div>}
             </Col>
+
+
 
           </Row>
         </Box>

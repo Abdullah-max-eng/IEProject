@@ -579,12 +579,34 @@ def getAssignments(request):
 
         try:
             clos_of_the_course = CLO.objects.filter(course=course)
-            assignments = AssessmentComponent.objects.filter(
-                clos__in=clos_of_the_course)
-            assignments_list = [
-                {'id': assignment.id, 'assessmentType': assignment.assessmentType} for assignment in assignments]
-            return JsonResponse({'assignments': assignments_list}, safe=False)
+            assessment_components_by_clo = {}
+
+            for clo in clos_of_the_course:
+                assessment_components = clo.assessment_components.all()
+                assessment_components_list = [
+                    {'id': component.id, 'assessmentType': component.assessmentType} for component in assessment_components
+                ]
+                assessment_components_by_clo[clo.index] = assessment_components_list
+
+            if assessment_components_by_clo:
+                return JsonResponse({'assessmentComponents': assessment_components_by_clo})
+            else:
+                return JsonResponse({'error': 'No assessment components found for the course'}, status=404)
         except CLO.DoesNotExist:
-            return JsonResponse({'error': 'No assignments found for the course'})
+            return JsonResponse({'error': 'No CLOs found for the course'})
+
+    return JsonResponse({'error': 'Invalid request'})
+
+
+def SaveOrGetCloAndCLO(request):
+    if request.user.is_authenticated:
+        course_id = request.GET.get('Cid')
+        if request.method == 'POST':
+            bodyData = dataReceived = json.loads(request.body)
+            print("------------------ POST", course_id, bodyData)
+            return HttpResponse({})
+        elif request.method == 'GET':
+            print("------------------ GET", course_id)
+            return HttpResponse({})
 
     return JsonResponse({'error': 'Invalid request'})
