@@ -24,6 +24,9 @@ export const CourseReflectionForm = ({ initialData }) => {
   const [selectedCourseID, setSelectedCourseID] = useState('');
   const [assessments, setAssessments] = useState({});
   const [selectedAssessment, setSelectedAssessment] = useState({});
+  const [showCLOTable, setShowCLOTable] = useState(false);
+  const [showSLOTable, setShowSLOTable] = useState(false);
+
   const assessmentComponentOptions = [
     { value: 'Assignment', label: 'Assignment' },
     { value: 'Quiz', label: 'Quiz' },
@@ -47,7 +50,8 @@ export const CourseReflectionForm = ({ initialData }) => {
     { value: 'Participation', label: 'Participation' },
     // Add other possible assessment components here
   ];
-
+  const [SLODATA, setSLOData] = useState([])
+  const [CLODATA, setCLODATA] = useState([])
 
 
 
@@ -83,8 +87,6 @@ export const CourseReflectionForm = ({ initialData }) => {
   }, []);
 
 
-
-
   const getAssignments = () => {
     fetch(`${process.env.REACT_APP_SERVER_IP}/getAssignments/?Cid=${selectedCourseID}`)
       .then(response => response.json())
@@ -95,6 +97,42 @@ export const CourseReflectionForm = ({ initialData }) => {
         console.error('Error fetching assignments:', error);
       });
   };
+
+
+
+
+  useEffect(() => {
+    if (selectedCourseID) {
+      const fetchData = async () => {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_SERVER_IP}/SaveOrGetCloAndCLO/?Cid=${selectedCourseID}`);
+          if (response.ok) {
+            const data = await response.json();
+            setCLODATA(data.CLOsData)
+            setSLOData(data.SLOData)
+
+          }
+        } catch (error) {
+          console.error('Error fetching existing data:', error);
+        }
+      };
+      fetchData();
+    }
+  }, [selectedCourseID]);
+
+
+
+
+
+
+  useEffect(() => {
+    console.log("SLODDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", SLODATA)
+  }, [SLODATA]);
+
+
+  useEffect(() => {
+    console.log("CCCCCLOOOOOOOOOOOOOOOOOOOOOOO", CLODATA)
+  }, [CLODATA]);
 
 
 
@@ -193,6 +231,40 @@ export const CourseReflectionForm = ({ initialData }) => {
     return { contentEditable: 'false', value: defaultValue };
   };
 
+  const handleShowCLOTable = () => {
+    setShowCLOTable(true);
+  };
+
+  const handleHideCLOTable = () => {
+    setShowCLOTable(false);
+  };
+
+  const handleShowSLOTable = () => {
+    setShowSLOTable(true);
+  };
+
+  const handleHideSLOTable = () => {
+    setShowSLOTable(false);
+  };
+
+
+  const handleShowCurrentData = () => {
+    // Function to handle "Show Current Data" button click
+    // We'll set the SLODATA and CLODATA in the state so they can be displayed in tables
+
+    // For SLO data
+    const sloData = SLODATA || [];
+    setSLOData(sloData);
+
+    // For CLO data
+    const cloData = CLODATA || [];
+    setCLODATA(cloData);
+  };
+
+
+
+
+
 
 
 
@@ -201,15 +273,9 @@ export const CourseReflectionForm = ({ initialData }) => {
       <Box sx={{ height: '100vh' }}>
         <NavBarTopProcess />
         <Container fixed>
-
-
           <Row className="fs-4 fw-bold d-flex justify-content-center">
             Course Reflection Form
           </Row>
-
-
-
-
           <Row>
             <b className="oneandhalf oneandhalfmargin">
               Please refer to your course syllabus to fill the Student Learning Outcomes (SLOs) and Course Learning
@@ -217,238 +283,295 @@ export const CourseReflectionForm = ({ initialData }) => {
             </b>
           </Row>
 
+          {/* Table to display SLO data */}
+          {showSLOTable ? (
+            <>
+              <Row>
+                <h3>SLO Data</h3>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>SLO</th>
+                      <th>Achievement Status</th>
+                      <th>Assessment</th>
+                      <th>Faculty Comments</th>
+                      <th>Reviewer Comments</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SLODATA.map((item) => (
+                      <tr key={item.index}>
+                        <td>SLO{item.index}</td>
+                        <td>{item.achievementStatus}</td>
+                        <td>{item.assessments}</td>
+                        <td>{item.facultyComment}</td>
+                        <td>{item.reviewerComment}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </Row>
+              <Row>
+                <Button variant="contained" color="primary" onClick={handleHideSLOTable}>
+                  Hide SLOs
+                </Button>
+              </Row>
+            </>
+          ) : (
+            <Row>
+              <Button variant="contained" color="primary" onClick={handleShowSLOTable}>
+                Edit SLOs
+              </Button>
+            </Row>
+          )}
 
-
-
-          <Row>
-            <Table id="sloTable" style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
-              <thead>
-                <tr>
-                  <td>
-                    <b>SLO</b>
-                  </td>
-                  <td>
-                    <b>Achievement Status</b>
-                  </td>
-                  <td>
-                    <b>Assessment</b>
-                  </td>
-                  <td>
-                    <b>Faculty Comments</b>
-                  </td>
-                  <td>
-                    <b>Reviewer Comments</b>
-                  </td>
-                </tr>
-              </thead>
-              <tbody>
-                {[...Array(10)].map((_, index) => (
-                  <tr key={index}>
-
-
+          {/* Change table for SLO */}
+          {showSLOTable && (
+            <Row>
+              <Table id="sloTable" style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
+                <thead>
+                  <tr>
                     <td>
-                      <b>SLO{index + 1}</b>
+                      <b>SLO</b>
                     </td>
-
-
                     <td>
-                      <form className="oneandhalf">
-                        <input
-                          type="radio"
-                          id={`MeetTheCriteria-${index}`}
-                          name={`slo-criteria-${index}`}
-                          value="meet"
-                          defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'meet'}
-                          {...disableField}
-                        />
-                        <label htmlFor={`MeetTheCriteria-${index}`}>Achieved</label>
-                        <input
-                          type="radio"
-                          id={`partialMeetTheCriteria-${index}`}
-                          name={`slo-criteria-${index}`}
-                          value="pMeet"
-                          defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'pMeet'}
-                          {...disableField}
-                        />
-                        <label htmlFor={`partialMeetTheCriteria-${index}`}>Partially Achieved</label>
-                        <input
-                          type="radio"
-                          id={`notMeetTheCriteria-${index}`}
-                          name={`slo-criteria-${index}`}
-                          value="notMeet"
-                          defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'notMeet'}
-                          {...disableField}
-                        />
-                        <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
-                      </form>
+                      <b>Achievement Status</b>
                     </td>
-
-
-
                     <td>
-                      <Select
-                        multiple
-                        value={selectedAssessment[index] || []}
-                        onChange={(e) => handleAssessmentSelect(e.target.value, index)}
-                        disabled={isReviewer}
-                      >
-                        <MenuItem value="">
-                          <em>Select Assessment</em>
-                        </MenuItem>
-                        {assessmentComponentOptions.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
+                      <b>Assessment</b>
+                    </td>
+                    <td>
+                      <b>Faculty Comments</b>
+                    </td>
+                    <td>
+                      <b>Reviewer Comments</b>
+                    </td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...Array(10)].map((_, index) => (
+                    <tr key={index}>
+                      <td>
+                        <b>SLO{index + 1}</b>
+                      </td>
+                      <td>
+                        <form className="oneandhalf">
+                          <input
+                            type="radio"
+                            id={`MeetTheCriteria-${index}`}
+                            name={`slo-criteria-${index}`}
+                            value="meet"
+                            defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'meet'}
+                            {...disableField}
+                          />
+                          <label htmlFor={`MeetTheCriteria-${index}`}>Achieved</label>
+                          <input
+                            type="radio"
+                            id={`partialMeetTheCriteria-${index}`}
+                            name={`slo-criteria-${index}`}
+                            value="pMeet"
+                            defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'pMeet'}
+                            {...disableField}
+                          />
+                          <label htmlFor={`partialMeetTheCriteria-${index}`}>Partially Achieved</label>
+                          <input
+                            type="radio"
+                            id={`notMeetTheCriteria-${index}`}
+                            name={`slo-criteria-${index}`}
+                            value="notMeet"
+                            defaultChecked={formData?.sloData?.[index]?.achievementStatus === 'notMeet'}
+                            {...disableField}
+                          />
+                          <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
+                        </form>
+                      </td>
+                      <td>
+                        <Select
+                          multiple
+                          value={selectedAssessment[index] || []}
+                          onChange={(e) => handleAssessmentSelect(e.target.value, index)}
+                          disabled={isReviewer}
+                        >
+                          <MenuItem value="">
+                            <em>Select Assessment</em>
                           </MenuItem>
-                        ))}
-                      </Select>
-                    </td>
+                          {assessmentComponentOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </td>
+                      <td>
+                        <textarea
+                          id={`faculty-comments-${index}`}
+                          className="form-control"
+                          rows="1"
+                          {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.facultyComments)}
+                          {...disableNonEditableFields}
+                        />
+                      </td>
+                      <td>
+                        <textarea
+                          id={`reviewer-comments-${index}`}
+                          className="form-control"
+                          rows="1"
+                          {...makeEditableForReviewer(isReviewer, formData?.sloData?.[index]?.reviewerComments)}
+                          {...disableReviewerComments}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <Button variant="contained" color="secondary" onClick={handleHideSLOTable}>
+                Hide SLOs
+              </Button>
+            </Row>
+          )}
 
+          {/* Table to display CLO data */}
+          {showCLOTable ? (
+            <>
+              <Row>
+                <h3>CLO Data</h3>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>CLO</th>
+                      <th>Achievement Status</th>
+                      <th>Assessment</th>
+                      <th>Faculty Comments</th>
+                      <th>Reviewer Comments</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CLODATA.map((item) => (
+                      <tr key={item.index}>
+                        <td>CLO{item.index}</td>
+                        <td>{item.achievementStatus}</td>
+                        <td>{item.assessment}</td>
+                        <td>{item.facultyComment}</td>
+                        <td>{item.reviewerComment}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </Row>
+              <Row>
+                <Button variant="contained" color="primary" onClick={handleHideCLOTable}>
+                  Hide CLOs
+                </Button>
+              </Row>
+            </>
+          ) : (
+            <Row>
+              <Button variant="contained" color="primary" onClick={handleShowCLOTable}>
+                Edit CLOs
+              </Button>
+            </Row>
+          )}
 
-
+          {/* Change table for CLO */}
+          {showCLOTable && (
+            <Row>
+              <Table id="cloTable" style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
+                <thead>
+                  <tr>
                     <td>
-                      <textarea
-                        id={`faculty-comments-${index}`} // Add the id attribute here
-                        className="form-control"
-                        rows="1"
-                        {...makeEditableForProfessor(isProfessor, formData?.sloData?.[index]?.facultyComments)}
-                        {...disableNonEditableFields}
-                      />
+                      <b>CLO</b>
                     </td>
-
-
-
-
                     <td>
-                      <textarea
-                        id={`reviewer-comments-${index}`} // Add the id attribute here
-                        className="form-control"
-                        rows="1"
-                        {...makeEditableForReviewer(isReviewer, formData?.sloData?.[index]?.reviewerComments)}
-                        {...disableReviewerComments}
-                      />
+                      <b>Achievement Status</b>
                     </td>
-
-
-
-
+                    <td>
+                      <b>Assessment</b>
+                    </td>
+                    <td>
+                      <b>Faculty Comments</b>
+                    </td>
+                    <td>
+                      <b>Reviewer Comments</b>
+                    </td>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Row>
+                </thead>
+                <tbody>
+                  {[...Array(10)].map((_, index) => (
+                    <tr key={index}>
+                      <td>
+                        <b>CLO{index + 1}</b>
+                      </td>
+                      <td>
+                        <form className="oneandhalf">
+                          <input
+                            type="radio"
+                            id={`MeetTheCriteria-${index}`}
+                            name={`clo-criteria-${index}`}
+                            value="meet"
+                            defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'meet'}
+                            {...disableField}
+                          />
+                          <label htmlFor={`MeetTheCriteria-${index}`}>Achieved</label>
+                          <input
+                            type="radio"
+                            id={`partialMeetTheCriteria-${index}`}
+                            name={`clo-criteria-${index}`}
+                            value="pMeet"
+                            defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'pMeet'}
+                            {...disableField}
+                          />
+                          <label htmlFor={`partialMeetTheCriteria-${index}`}>Partially Achieved</label>
+                          <input
+                            type="radio"
+                            id={`notMeetTheCriteria-${index}`}
+                            name={`clo-criteria-${index}`}
+                            value="notMeet"
+                            defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'notMeet'}
+                            {...disableField}
+                          />
+                          <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
+                        </form>
+                      </td>
+                      <td>
+                        {assessments[index + 1] &&
+                          assessments[index + 1].map((assessment) => (
+                            <div key={assessment.id}>{assessment.assessmentType}</div>
+                          ))}
+                      </td>
+                      <td>
+                        <textarea
+                          id={`clo-faculty-comments-${index}`}
+                          className="form-control"
+                          rows="1"
+                          {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.facultyComments)}
+                          {...disableNonEditableFields}
+                        />
+                      </td>
+                      <td>
+                        <textarea
+                          id={`clo-reviewer-comments-${index}`}
+                          className="form-control"
+                          rows="1"
+                          {...makeEditableForReviewer(isReviewer, formData?.cloData?.[index]?.reviewerComments)}
+                          {...disableReviewerComments}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <Button variant="contained" color="secondary" onClick={handleHideCLOTable}>
+                Hide CLOs
+              </Button>
+            </Row>
+          )}
 
-
-
-
+          {/* New section to show current data */}
           <Row>
-            <Table id="cloTable" style={{ background: 'rgba(255,255,255,0.67)' }} bordered>
-              <thead>
-                <tr>
-                  <td>
-                    <b>CLO</b>
-                  </td>
-                  <td>
-                    <b>Achievement Status</b>
-                  </td>
-                  <td>
-                    <b>Assessment</b>
-                  </td>
-                  <td>
-                    <b>Faculty Comments</b>
-                  </td>
-                  <td>
-                    <b>Reviewer Comments</b>
-                  </td>
-                </tr>
-              </thead>
-              <tbody>
-                {[...Array(10)].map((_, index) => (
-                  <tr key={index}>
-
-
-                    <td>
-                      <b>CLO{index + 1}</b>
-                    </td>
-
-
-                    <td>
-                      <form className="oneandhalf">
-                        <input
-                          type="radio"
-                          id={`MeetTheCriteria-${index}`}
-                          name={`clo-criteria-${index}`}
-                          value="meet"
-                          defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'meet'}
-                          {...disableField}
-                        />
-                        <label htmlFor={`MeetTheCriteria-${index}`}>Achieved</label>
-                        <input
-                          type="radio"
-                          id={`partialMeetTheCriteria-${index}`}
-                          name={`clo-criteria-${index}`}
-                          value="pMeet"
-                          defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'pMeet'}
-                          {...disableField}
-                        />
-                        <label htmlFor={`partialMeetTheCriteria-${index}`}>Partially Achieved</label>
-                        <input
-                          type="radio"
-                          id={`notMeetTheCriteria-${index}`}
-                          name={`clo-criteria-${index}`}
-                          value="notMeet"
-                          defaultChecked={formData?.cloData?.[index]?.achievementStatus === 'notMeet'}
-                          {...disableField}
-                        />
-                        <label htmlFor={`notMeetTheCriteria-${index}`}>Not Achieved</label>
-                      </form>
-                    </td>
-
-
-
-                    <td>
-                      {assessments[index + 1] && assessments[index + 1].map(assessment => (
-                        <div key={assessment.id}>{assessment.assessmentType}</div>
-                      ))}
-                    </td>
-
-
-
-                    <td>
-                      <textarea
-                        id={`clo-faculty-comments-${index}`} // Add the id attribute here
-                        className="form-control"
-                        rows="1"
-                        {...makeEditableForProfessor(isProfessor, formData?.cloData?.[index]?.facultyComments)}
-                        {...disableNonEditableFields}
-                      />
-                    </td>
-
-
-
-
-                    <td>
-                      <textarea
-                        id={`clo-reviewer-comments-${index}`} // Add the id attribute here
-                        className="form-control"
-                        rows="1"
-                        {...makeEditableForReviewer(isReviewer, formData?.cloData?.[index]?.reviewerComments)}
-                        {...disableReviewerComments}
-                      />
-                    </td>
-
-
-
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <Button variant="contained" color="primary" onClick={handleShowCurrentData}>
+              Show Current Data
+            </Button>
           </Row>
-
-
-
-
-
-
           <Row>
             <Button variant="contained" color="primary" onClick={handleSaveAndNext}>
               Save and Next
@@ -457,17 +580,10 @@ export const CourseReflectionForm = ({ initialData }) => {
               Back
             </Button>
           </Row>
-
-
-
-
-
-
         </Container>
       </Box>
     </div>
   );
-
 
 
 

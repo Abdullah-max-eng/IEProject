@@ -294,14 +294,19 @@ export const CourseKeyIndicaters = () => {
 
                   <div style={{ backgroundColor: '#f2f2f2', padding: '20px', borderRadius: '4px' }}>
                     <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                      <p style={{ marginBottom: '15px', marginTop: '15px' }}>
+
+
+
+                      {/* <p style={{ marginBottom: '15px', marginTop: '15px' }}>
                         <label style={{ fontWeight: 'bold' }}>Course Title:&nbsp;&nbsp;&nbsp;</label>
-                        {selectedCourseBasedOnTerm.courseTitle}
+                        {selectedCourseBasedOnTerm.courseTitle ? selectedCourseBasedOnTerm.courseTitle : 'N/A'}
                       </p>
                       <p style={{ marginBottom: '15px' }}>
                         <label style={{ fontWeight: 'bold' }}>Instructor Name:&nbsp;&nbsp;&nbsp;</label>
-                        {selectedCourseBasedOnTerm.professorName}
-                      </p>
+                        {selectedCourseBasedOnTerm.professorName ? selectedCourseBasedOnTerm.professorName : 'N/A'}
+                      </p> */}
+
+
                     </div>
                   </div>
 

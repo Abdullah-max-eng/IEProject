@@ -94,6 +94,29 @@ class CLO(models.Model):
         return f"CLO ID: {self.id}------CLO Index: {self.index} ------- {self.course.courseTitle} ---------- ({self.course.term} {self.course.academicYear})"
 
 
+class SLO(models.Model):
+    index = models.PositiveIntegerField(null=True, blank=True)
+    achievementStatus = models.CharField(max_length=10)
+    facultyComment = models.TextField()
+    reviewerComment = models.TextField()
+    course = models.ForeignKey(
+        Courses, on_delete=models.CASCADE, related_name='slos')
+    assessments = models.CharField(max_length=200, blank=True, null=True)
+
+    def get_assessments_list(self):
+        if self.assessments:
+            return self.assessments.split(',')
+        return []
+
+    def set_assessments_list(self, assessments_list):
+        self.assessments = ','.join(assessments_list)
+
+    assessments_list = property(get_assessments_list, set_assessments_list)
+
+    def __str__(self):
+        return f"SLO ID: {self.id}------SLO Index: {self.index} ------- {self.course.courseTitle} ---------- ({self.course.term} {self.course.academicYear})"
+
+
 class AssessmentComponent(models.Model):
     ASSESSMENT_CHOICES = (
         ('Assignment', 'Assignment'),
@@ -121,6 +144,7 @@ class AssessmentComponent(models.Model):
     assessmentType = models.CharField(
         max_length=20, choices=ASSESSMENT_CHOICES, null=True, blank=True)
     clos = models.ManyToManyField(CLO, related_name='assessment_components')
+    slos = models.ManyToManyField(SLO, related_name='assessment_components')
 
     def __str__(self):
         return self.assessmentType
@@ -175,18 +199,6 @@ class ReviewersFeedback(models.Model):
 
     def __str__(self):
         return f"{self.course.courseCode} Reviewers Feedback"
-
-
-class SLO(models.Model):
-    achievementStatus = models.CharField(max_length=10)
-    assessment = models.TextField()
-    facultyComment = models.TextField()
-    reviewerComment = models.TextField()
-    course = models.ForeignKey(
-        Courses, on_delete=models.CASCADE, related_name='slos')
-
-    def __str__(self):
-        return self.sloId
 
 
 class GradesCard(models.Model):

@@ -1,3 +1,5 @@
+from .models import SLO, AssessmentComponent, Courses
+from django.http import JsonResponse, HttpResponse
 from django.forms.models import model_to_dict
 from .models import Challenges, Courses
 from imaplib import _Authenticator
@@ -207,11 +209,11 @@ def get_selected_course_id(request):
 
 def AddOrGetDataSecondKeyIndicators(request):
     selected_course_ID = request.GET.get('Cid')
-
     if request.user.is_authenticated:
         if request.method == 'POST':
             received_data = request.body
             try:
+                print("---------------------------------------", received_data)
                 # Parse the received JSON data
                 data_list = json.loads(received_data)
                 if selected_course_ID is not None and selected_course_ID.isdigit():
@@ -220,8 +222,8 @@ def AddOrGetDataSecondKeyIndicators(request):
                 else:
                     return JsonResponse({'error': 'Invalid course ID'})
 
-                # Clear existing CLOs and related assessment components for the selected course
-                course.clos.all().delete()
+                # Get existing CLOs for the selected course
+                existing_clos = {clo.index: clo for clo in course.clos.all()}
 
                 for data in data_list:
                     clo_index = data['cloIndex']
@@ -229,18 +231,37 @@ def AddOrGetDataSecondKeyIndicators(request):
                     weight = data['weight']
                     assignments = data['assignments']
 
-                    # Create a new CLO instance
-                    clo = CLO(index=clo_index, cloMarks=marks,
-                              cloWeight=weight, course=course)
-                    clo.save()
+                    if clo_index in existing_clos:
+                        # Update the existing CLO
+                        clo = existing_clos[clo_index]
+                        clo.cloMarks = marks
+                        clo.cloWeight = weight
+                        clo.save()
+                    else:
+                        # Create a new CLO instance
+                        clo = CLO(index=clo_index, cloMarks=marks,
+                                  cloWeight=weight, course=course)
+                        clo.save()
 
-                    # Create assessment components for the CLO
+                    # Update assessment components for the CLO based on received assignments
+                    existing_assessment_components = {
+                        comp.assessmentType: comp for comp in clo.assessment_components.all()}
                     for assignment in assignments:
-                        assessment_component = AssessmentComponent(
-                            assessmentType=assignment,
-                        )
-                        assessment_component.save()
-                        clo.assessment_components.add(assessment_component)
+                        if assignment in existing_assessment_components:
+                            # If assignment already exists, update its data
+                            assessment_component = existing_assessment_components[assignment]
+                            # Update any other properties of the assessment component if needed
+                        else:
+                            # If assignment does not exist, create a new one and add it to CLO's assessment components
+                            assessment_component = AssessmentComponent(
+                                assessmentType=assignment)
+                            assessment_component.save()
+                            clo.assessment_components.add(assessment_component)
+
+                    # Remove any existing assessment components not present in the received assignments
+                    for existing_assignment, existing_component in existing_assessment_components.items():
+                        if existing_assignment not in assignments:
+                            existing_component.delete()
 
                 # Delete assignments not associated with any CLO
                 AssessmentComponent.objects.filter(clos__isnull=True).delete()
@@ -598,15 +619,82 @@ def getAssignments(request):
     return JsonResponse({'error': 'Invalid request'})
 
 
+@csrf_exempt
 def SaveOrGetCloAndCLO(request):
-    if request.user.is_authenticated:
-        course_id = request.GET.get('Cid')
-        if request.method == 'POST':
-            bodyData = dataReceived = json.loads(request.body)
-            print("------------------ POST", course_id, bodyData)
-            return HttpResponse({})
-        elif request.method == 'GET':
-            print("------------------ GET", course_id)
-            return HttpResponse({})
+    course_id = request.GET.get('Cid')
 
-    return JsonResponse({'error': 'Invalid request'})
+    if request.method == 'POST':
+        bodyData = dataReceived = json.loads(request.body)
+        SLO_data = bodyData['SLOD']
+        CLO_data = bodyData['CLOD']
+
+        print("------------------ Data ---------------", CLO_data)
+        print("------------------ Data ---------------", SLO_data)
+
+        # Find the course based on course_id
+        try:
+            course = Courses.objects.get(id=course_id)
+        except Courses.DoesNotExist:
+            return JsonResponse({'error': 'Course not found'})
+
+        for clo_Item in CLO_data:
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Data >>>>>>>>>>>>>>", clo_Item)
+            if any(value for key, value in clo_Item.items() if key != 'clo' and value != ''):
+                try:
+                    clo = CLO.objects.get(index=clo_Item['clo'], course=course)
+                    clo.achievementStatus = clo_Item.get(
+                        'achievementStatus', '')
+                    clo.facultyComment = clo_Item.get('facultyComments', '')
+                    clo.reviewerComment = clo_Item.get('reviewerComments', '')
+                    clo.save()
+                except CLO.DoesNotExist:
+                    print("CLO matching query does not exist for index:",
+                          clo_Item['clo'], "and course:", course)
+
+        for slo_item in SLO_data:
+            slo_number = slo_item['slo']
+            if any(value for key, value in slo_item.items() if key != 'slo' and value != ''):
+                achievement_status = slo_item.get('achievementStatus', '')
+                faculty_comments = slo_item.get('facultyComments', '')
+                reviewer_comments = slo_item.get('reviewerComments', '')
+                assessments = slo_item.get('assessments', [])
+
+                try:
+                    slo = SLO.objects.get(index=slo_number, course=course)
+                    slo.achievementStatus = achievement_status
+                    slo.facultyComment = faculty_comments
+                    slo.reviewerComment = reviewer_comments
+                    slo.set_assessments_list(assessments)
+                    slo.save()
+                except SLO.DoesNotExist:
+                    slo = SLO.objects.create(
+                        index=slo_number,
+                        achievementStatus=achievement_status,
+                        facultyComment=faculty_comments,
+                        reviewerComment=reviewer_comments,
+                        course=course
+                    )
+                    slo.set_assessments_list(assessments)
+                    slo.save()
+
+        return HttpResponse({})
+
+    elif request.method == 'GET':
+        try:
+            course = get_object_or_404(Courses, id=course_id)
+        except Courses.DoesNotExist:
+            return HttpResponseBadRequest("Invalid Course ID")
+
+        CLOsData = CLO.objects.filter(course=course)
+        SLOData = SLO.objects.filter(course=course)
+
+        # print("------------------ CLO Data to be returned", CLOsData)
+        # print("------------------ SLO Data to be returned", SLOData)
+
+        data = {
+            'CLOsData': list(CLOsData.values()),
+            'SLOData': list(SLOData.values())
+        }
+
+        return HttpResponse(json.dumps(data), content_type='application/json')
+        # return JsonResponse({'error': 'Invalid request'})
